@@ -1,6 +1,8 @@
 package shared.serializable;
 
-public class ClientRequest {
+import java.io.Serializable;
+
+public class ClientRequest implements Serializable {
 
     String command;
     String commandArgument;

@@ -1,7 +1,10 @@
 package server;
 
-import client.Client;
-import server.util.CommandExecutionCode;
+import server.commands.Command;
+import server.commands.Help;
+import server.util.CollectionStorage;
+import server.util.CommandWrapper;
+import shared.util.CommandExecutionCode;
 import server.util.Pair;
 import server.util.RequestProcessor;
 import shared.serializable.ClientRequest;
@@ -10,6 +13,7 @@ import shared.serializable.ServerResponse;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.IllegalBlockingModeException;
@@ -23,9 +27,20 @@ public class Server implements Runnable {
     private RequestProcessor requestProcessor;
 
 
+
+
     public static void main(String[] args) {
 
+        String path = (args.length == 0) ? "" : args[0];
+        CollectionStorage collectionStorage = new CollectionStorage();
+        collectionStorage.loadCollection(path);
+        Command[] commands = {new Help()};
+
+        Server server = new Server(666, 60000, new RequestProcessor(new CommandWrapper(collectionStorage, commands)));
+        server.run();
     }
+
+
 
 
     Server(int port, int timeOut, RequestProcessor requestProcessor) {
@@ -41,13 +56,38 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
+
         createSocketFactory();
-        boolean noExitCode = true;
-        while (noExitCode) {
-            /*
-            True пока нет EXIT CODE в присланном запросе
-             */
+        boolean noServerExitCode = true;
+        /*
+        True пока нет EXIT (SERVER) в присланном запросе
+         */
+        while (noServerExitCode) {
+
+            try (Socket socket = establishClientConnection()) {
+
+                noServerExitCode = handleRequests(socket);
+
+            } catch (IOException e) {
+
+                // ПРИ ОШИБКЕ ИЛИ ПРЕВЫШЕННОМ ВРЕМЕНИ ОЖИДАНИЯ СЕРВЕР ЗАВЕРШАЕТ РАБОТУ
+                e.printStackTrace();
+                System.out.println(e.getMessage());
+                noServerExitCode = false;
+            }
         }
+
+        if (serverSocket != null) {
+            try {
+                serverSocket.close();
+                System.out.println("Сервер прекращает работу");
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Сервер прекращает работу с ошибкой");
+            }
+        }
+
+
     }
 
     private void createSocketFactory() {
@@ -63,19 +103,20 @@ public class Server implements Runnable {
         }
     }
 
-    private Socket establishClientConnection() {
+    private Socket establishClientConnection() throws ConnectException {
         try {
             System.out.println("Прослушивается порт " + port);
             Socket clientSocket = serverSocket.accept();
             System.out.println("Соединение установлено");
             return clientSocket;
-        } catch (IOException | IllegalBlockingModeException e) {
+        } catch (IOException | IllegalBlockingModeException | IllegalArgumentException e) {
             e.printStackTrace();
+            throw new ConnectException("Ошибка соединения.");
         }
-        return null;
     }
 
     private boolean handleRequests(Socket socket) {
+
         ClientRequest clientRequest;
         Pair<CommandExecutionCode, ServerResponse> responseWithStatusCode;
         ServerResponse serverResponse;
@@ -83,18 +124,29 @@ public class Server implements Runnable {
         try (ObjectInputStream requestReader = new ObjectInputStream(socket.getInputStream());
              ObjectOutputStream responseWriter = new ObjectOutputStream(socket.getOutputStream())) {
 
-            clientRequest = (ClientRequest) requestReader.readObject();
-            responseWithStatusCode = requestProcessor.processRequest(clientRequest);
-            serverResponse = responseWithStatusCode.getSecond();
+            do {
 
+                clientRequest = (ClientRequest) requestReader.readObject();
+                System.out.println(clientRequest);
+                serverResponse = requestProcessor.processRequest(clientRequest);
+                System.out.println(serverResponse);
+                // TIMEOUT EXCEPTION? если был экзит на стороне клиента, респонс не дойдет
+                responseWriter.writeObject(serverResponse);
+                responseWriter.flush();
+
+            } while (serverResponse.getCode() != CommandExecutionCode.EXIT);
+
+            return false;
 
         } catch (IOException | ClassNotFoundException e) {
+
+            System.out.println("fuck");
+            // ЕСЛИ ПРОИСХОДИТ ОШИБКА ИО, ТО ВЕРОЯТНО КЛИЕНТ ВЫПОЛНИЛ СВОЙ ЭКЗИТ И РЕСПОНС НЕ ДОШЕЛ???
             e.printStackTrace();
         }
 
-        return false;
+        return true;
     }
-
 
 
 }

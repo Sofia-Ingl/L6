@@ -1,14 +1,32 @@
 package shared.serializable;
 
-public class ServerResponse {
+import shared.util.CommandExecutionCode;
 
-    String responseToPrint;
+import java.io.Serializable;
 
-    public ServerResponse(String responseToPrint) {
+public class ServerResponse implements Serializable {
+
+    private String responseToPrint;
+    private CommandExecutionCode code;
+
+    public ServerResponse(CommandExecutionCode code, String responseToPrint) {
+        this.code = code;
         this.responseToPrint = responseToPrint;
     }
 
     public String getResponseToPrint() {
         return responseToPrint;
+    }
+
+    public CommandExecutionCode getCode() {
+        return code;
+    }
+
+    @Override
+    public String toString() {
+        return "ServerResponse{" +
+                "responseToPrint='" + responseToPrint + '\'' +
+                ", code=" + code +
+                '}';
     }
 }

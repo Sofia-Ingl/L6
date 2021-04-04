@@ -1,4 +1,4 @@
-package server.util;
+package shared.util;
 
 public enum CommandExecutionCode {
     SUCCESS,
