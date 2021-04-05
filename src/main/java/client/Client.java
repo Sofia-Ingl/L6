@@ -2,6 +2,7 @@ package client;
 
 import shared.serializable.ClientRequest;
 import shared.serializable.ServerResponse;
+import shared.util.Serialization;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -10,6 +11,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.Set;
 
 public class Client implements Runnable {
 
@@ -21,20 +24,12 @@ public class Client implements Runnable {
     private SocketChannel socketChannel;
     private Selector selector;
     private SocketAddress socketAddress;
-    private ByteBuffer inputBuffer;
-    //ObjectInputStream responseReader;
 
 
     public static void main(String[] args) {
 
         Client client = new Client("localhost", 666, 1, 10000);
         client.run();
-
-
-        // СЕЛЕКТОРЫ !!!!!!!!!!!!!!!
-        client.sendClientRequest(new ClientRequest("help", "", null));
-        client.readServerResponse();
-
 
 
     }
@@ -52,55 +47,50 @@ public class Client implements Runnable {
 
         setConnectionWithServer();
         setSelector();
-        //initInputBuffer();
 
-        /*
         try {
-            responseReader = new ObjectInputStream(socketChannel.socket().getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-         */
-
-        /*
-        try {
-
             socketChannel.register(selector, SelectionKey.OP_WRITE);
+            while (true) {
+                int count = selector.select();
+                if (count == 0) {
+                    break;
+                }
 
-            //РАБОТА С ГОТОВНОСТЬЮ СЕРВЕРА
-
-
-        } catch (ClosedChannelException e) {
-            e.printStackTrace();
-        }
-
-         */
-
-
-    }
-
-
-    private void initInputBuffer() {
-        System.out.println("Буфер готов к записи");
-        inputBuffer = ByteBuffer.wrap(new byte[1000000]);
-    }
-
-    /*
-    private ServerResponse readServerResponse() {
-
-        try {
-
-            return (ServerResponse) responseReader.readObject();
+                Set keys = selector.selectedKeys();
+                Iterator iterator = keys.iterator();
+                while (iterator.hasNext()) {
+                    SelectionKey selectionKey = (SelectionKey) iterator.next();
+                    iterator.remove();
+                    if (selectionKey.isReadable()) {
+                        socketChannel.register(selector, SelectionKey.OP_WRITE);
+                        byte[] b = getResponse();
+                        ServerResponse response = (ServerResponse) Serialization.deserialize(b);
+                        System.out.println(response);
+                    }
+                    if (selectionKey.isWritable()) {
+                        socketChannel.register(selector, SelectionKey.OP_READ);
+                        sendClientRequest(new ClientRequest("help", "", null));
+                        System.out.println("Sent");
+                    }
+                }
+            }
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-        return null;
+
+
     }
 
-     */
 
+    private byte[] getResponse() throws IOException, ClassNotFoundException {
+        byte[] buffer = new byte[65555];
+        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
+        socketChannel.read(byteBuffer);
+        return byteBuffer.array();
+    }
+
+    /*
 
     private void fillTheBuffer() {
         try {
@@ -127,6 +117,8 @@ public class Client implements Runnable {
 
     private ServerResponse readServerResponse() {
 
+        fillTheBuffer();
+
         try {
 //            inputBuffer.clear();
 //            socketChannel.read(inputBuffer);
@@ -142,11 +134,17 @@ public class Client implements Runnable {
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
         return null;
     }
+
+     */
 
 
     private void sendClientRequest(ClientRequest clientRequest) {
@@ -186,19 +184,6 @@ public class Client implements Runnable {
     public Selector getSelector() {
         return selector;
     }
+
+
 }
-
-/*
-Обязанности клиентского приложения:
-
-Чтение команд из консоли.
-Валидация вводимых данных.
-Сериализация введённой команды и её аргументов.
-Отправка полученной команды и её аргументов на сервер.
-Обработка ответа от сервера (вывод результата исполнения команды в консоль).
-Команду save из клиентского приложения необходимо убрать.
-Команда exit завершает работу клиентского приложения.
-Важно! Команды и их аргументы должны представлять из себя объекты классов.
-Недопустим обмен "простыми" строками. Так, для команды add или её аналога необходимо сформировать объект,
-содержащий тип команды и объект, который должен храниться в вашей коллекции.
- */

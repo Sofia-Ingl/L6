@@ -9,10 +9,9 @@ import server.util.Pair;
 import server.util.RequestProcessor;
 import shared.serializable.ClientRequest;
 import shared.serializable.ServerResponse;
+import shared.util.Serialization;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -36,7 +35,7 @@ public class Server implements Runnable {
         collectionStorage.loadCollection(path);
         Command[] commands = {new Help()};
 
-        Server server = new Server(666, 60000, new RequestProcessor(new CommandWrapper(collectionStorage, commands)));
+        Server server = new Server(666, 20000, new RequestProcessor(new CommandWrapper(collectionStorage, commands)));
         server.run();
     }
 
@@ -121,18 +120,19 @@ public class Server implements Runnable {
         Pair<CommandExecutionCode, ServerResponse> responseWithStatusCode;
         ServerResponse serverResponse;
 
-        try (ObjectInputStream requestReader = new ObjectInputStream(socket.getInputStream());
-             ObjectOutputStream responseWriter = new ObjectOutputStream(socket.getOutputStream())) {
+        try {
 
             do {
 
-                clientRequest = (ClientRequest) requestReader.readObject();
-                System.out.println(clientRequest);
+                byte[] b = new byte[66666];
+                socket.getInputStream().read(b);
+                clientRequest = (ClientRequest) Serialization.deserialize(b);
+                //System.out.println(clientRequest);
                 serverResponse = requestProcessor.processRequest(clientRequest);
-                System.out.println(serverResponse);
-                // TIMEOUT EXCEPTION? если был экзит на стороне клиента, респонс не дойдет
-                responseWriter.writeObject(serverResponse);
-                responseWriter.flush();
+                //System.out.println(serverResponse);
+
+                socket.getOutputStream().write(Serialization.serialize(serverResponse));
+
 
             } while (serverResponse.getCode() != CommandExecutionCode.EXIT);
 
@@ -141,7 +141,6 @@ public class Server implements Runnable {
         } catch (IOException | ClassNotFoundException e) {
 
             System.out.println("fuck");
-            // ЕСЛИ ПРОИСХОДИТ ОШИБКА ИО, ТО ВЕРОЯТНО КЛИЕНТ ВЫПОЛНИЛ СВОЙ ЭКЗИТ И РЕСПОНС НЕ ДОШЕЛ???
             e.printStackTrace();
         }
 
