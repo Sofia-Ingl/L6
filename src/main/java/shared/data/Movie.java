@@ -1,12 +1,15 @@
 package shared.data;
 
 import com.google.gson.annotations.Expose;
+
+import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 /**
  * Фильм.
  */
-public class Movie implements Comparable<Movie> {
+public class Movie implements Comparable<Movie>, Serializable {
 
     @Expose
     private int id; //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
@@ -117,6 +120,20 @@ public class Movie implements Comparable<Movie> {
             result = name.compareTo(m.name);
         }
         return result;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Movie)) return false;
+        Movie movie = (Movie) o;
+        return Objects.equals(getName(), movie.getName()) && Objects.equals(getScreenwriter().getName(), movie.getScreenwriter().getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName());
     }
 
     @Override

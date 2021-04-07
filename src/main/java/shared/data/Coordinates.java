@@ -2,10 +2,12 @@ package shared.data;
 
 import com.google.gson.annotations.Expose;
 
+import java.io.Serializable;
+
 /**
  * Координаты.
  */
-public class Coordinates {
+public class Coordinates implements Serializable {
     @Expose
     private float x; //Максимальное значение поля: 326
     @Expose

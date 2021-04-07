@@ -153,8 +153,11 @@ public class CollectionStorage {
      *
      * @param movie фильм, который надо добавить в коллекцию.
      */
-    public void addNewElement(Movie movie) {
+    public boolean addNewElement(Movie movie) {
         int id;
+        if (collection.contains(movie)) {
+            return false;
+        }
         do {
             id = idGenerator();
         } while (allIds.contains(id));
@@ -167,6 +170,7 @@ public class CollectionStorage {
         if (maxMovie.compareTo(movie) < 0) {
             maxMovie = movie;
         }
+        return true;
     }
 
     /**

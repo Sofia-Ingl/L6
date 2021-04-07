@@ -1,9 +1,11 @@
 package shared.data;
 
+import java.io.Serializable;
+
 /**
  * Цвета.
  */
-public enum Color {
+public enum Color implements Serializable {
     RED,
     BLACK,
     BLUE,

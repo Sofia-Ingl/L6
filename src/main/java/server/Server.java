@@ -3,6 +3,7 @@ package server;
 import server.commands.Add;
 import server.commands.Command;
 import server.commands.Help;
+import server.commands.Show;
 import server.util.CollectionStorage;
 import server.util.CommandWrapper;
 import shared.util.CommandExecutionCode;
@@ -34,7 +35,7 @@ public class Server implements Runnable {
         String path = (args.length == 0) ? "" : args[0];
         CollectionStorage collectionStorage = new CollectionStorage();
         collectionStorage.loadCollection(path);
-        Command[] commands = {new Help(), new Add()};
+        Command[] commands = {new Help(), new Add(), new Show()};
 
         Server server = new Server(666, 20000, new RequestProcessor(new CommandWrapper(collectionStorage, commands)));
         server.run();

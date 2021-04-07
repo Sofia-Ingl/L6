@@ -2,10 +2,12 @@ package shared.data;
 
 import com.google.gson.annotations.Expose;
 
+import java.io.Serializable;
+
 /**
  * Человек.
  */
-public class Person {
+public class Person implements Serializable {
     @Expose
     private String name; //Поле не может быть null, Строка не может быть пустой
     @Expose
