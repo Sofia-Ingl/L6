@@ -1,10 +1,11 @@
-package server.util;
+package shared.serializable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Pair<K, V> {
+public class Pair<K, V> implements Serializable {
     private K first;
     private V second;
 

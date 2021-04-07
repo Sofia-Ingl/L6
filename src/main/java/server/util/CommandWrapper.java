@@ -2,6 +2,7 @@ package server.util;
 
 
 import server.commands.Command;
+import shared.serializable.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,4 +29,13 @@ public class CommandWrapper {
         return allCommandsAvailable;
     }
 
+    public HashMap<String, Pair<String, Boolean>> mapOfCommandsToSend() {
+        HashMap<String, Pair<String, Boolean>> mapToSend = new HashMap<>();
+        Command command;
+        for (String commandName: allCommandsAvailable.keySet()) {
+            command = allCommandsAvailable.get(commandName);
+            mapToSend.put(commandName, new Pair<>(command.getUtility(), command.isInteractive()));
+        }
+        return mapToSend;
+    }
 }

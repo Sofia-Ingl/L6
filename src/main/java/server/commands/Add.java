@@ -1,11 +1,11 @@
 package server.commands;
 
-import server.util.Pair;
+import shared.serializable.Pair;
 
 public class Add extends Command {
 
     public Add() {
-        super("add", "добавить новый элемент в коллекцию");
+        super("add", "добавить новый элемент в коллекцию", true);
     }
 
     @Override

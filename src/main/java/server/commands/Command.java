@@ -6,12 +6,14 @@ import server.util.CommandWrapper;
 public abstract class Command implements Executables {
     private final String name;
     private final String utility;
+    private final boolean isInteractive;
     private CommandWrapper commandWrapper = null;
     private CollectionStorage collectionStorage = null;
 
-    public Command(String name, String utility) {
+    public Command(String name, String utility, boolean isInteractive) {
         this.name = name;
         this.utility = utility;
+        this.isInteractive = isInteractive;
     }
 
     public String getName() {
@@ -36,5 +38,9 @@ public abstract class Command implements Executables {
 
     public void setCollectionStorage(CollectionStorage collectionStorage) {
         this.collectionStorage = collectionStorage;
+    }
+
+    public boolean isInteractive() {
+        return isInteractive;
     }
 }

@@ -2,6 +2,7 @@ package server.util;
 
 import server.commands.Command;
 import shared.serializable.ClientRequest;
+import shared.serializable.Pair;
 import shared.serializable.ServerResponse;
 import shared.util.CommandExecutionCode;
 
@@ -28,4 +29,7 @@ public class RequestProcessor {
         return new ServerResponse(code, commandResult.getSecond());
     }
 
+    public CommandWrapper getCommandWrapper() {
+        return commandWrapper;
+    }
 }

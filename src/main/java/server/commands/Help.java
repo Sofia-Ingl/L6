@@ -1,13 +1,13 @@
 package server.commands;
 
-import server.util.Pair;
+import shared.serializable.Pair;
 
 public class Help extends Command {
 
     private String commandInfo = null;
 
     public Help() {
-        super("help", "вывести справку по доступным командам");
+        super("help", "вывести справку по доступным командам", false);
     }
 
 
@@ -21,11 +21,11 @@ public class Help extends Command {
                 throw new IllegalArgumentException("Неверное число аргументов при использовании команды " + this.getName());
             }
             if (commandInfo == null) {
-                String help = "\n" + "ИНФОРМАЦИЯ О ДОСТУПНЫХ КОМАНДАХ" + "\n";
+                StringBuilder help = new StringBuilder("\n" + "ИНФОРМАЦИЯ О ДОСТУПНЫХ КОМАНДАХ" + "\n");
                 for (Command command : getCommandWrapper().getAllCommandsAvailable().values()) {
-                    help = help + command.getName() + " ~> " + command.getUtility() + "\n";
+                    help.append(command.getName()).append(" ~> ").append(command.getUtility()).append("\n");
                 }
-                commandInfo = help;
+                commandInfo = help.toString();
             }
             return new Pair<>(true, commandInfo);
 

@@ -1,11 +1,12 @@
 package server;
 
+import server.commands.Add;
 import server.commands.Command;
 import server.commands.Help;
 import server.util.CollectionStorage;
 import server.util.CommandWrapper;
 import shared.util.CommandExecutionCode;
-import server.util.Pair;
+import shared.serializable.Pair;
 import server.util.RequestProcessor;
 import shared.serializable.ClientRequest;
 import shared.serializable.ServerResponse;
@@ -33,7 +34,7 @@ public class Server implements Runnable {
         String path = (args.length == 0) ? "" : args[0];
         CollectionStorage collectionStorage = new CollectionStorage();
         collectionStorage.loadCollection(path);
-        Command[] commands = {new Help()};
+        Command[] commands = {new Help(), new Add()};
 
         Server server = new Server(666, 20000, new RequestProcessor(new CommandWrapper(collectionStorage, commands)));
         server.run();
@@ -64,6 +65,10 @@ public class Server implements Runnable {
         while (noServerExitCode) {
 
             try (Socket socket = establishClientConnection()) {
+
+                //
+                socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
+                //
 
                 noServerExitCode = handleRequests(socket);
 

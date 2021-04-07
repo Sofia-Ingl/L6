@@ -1,6 +1,8 @@
 package client;
 
+import client.util.Interaction;
 import shared.serializable.ClientRequest;
+import shared.serializable.Pair;
 import shared.serializable.ServerResponse;
 import shared.util.Serialization;
 
@@ -11,7 +13,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.Set;
 
 public class Client implements Runnable {
@@ -24,22 +28,24 @@ public class Client implements Runnable {
     private SocketChannel socketChannel;
     private Selector selector;
     private SocketAddress socketAddress;
-
+    private Interaction interaction;
+    private HashMap<String, Pair<String, Boolean>> commands;
 
     public static void main(String[] args) {
 
-        Client client = new Client("localhost", 666, 1, 10000);
+        Client client = new Client("localhost", 666, 1, 10000, new Interaction((new Scanner(System.in))));
         client.run();
 
 
     }
 
 
-    public Client(String host, int port, int maxReconnectionAttempts, int reconnectionTimeout) {
+    public Client(String host, int port, int maxReconnectionAttempts, int reconnectionTimeout, Interaction interaction) {
         this.host = host;
         this.port = port;
         this.maxReconnectionAttempts = maxReconnectionAttempts;
         this.reconnectionTimeout = reconnectionTimeout;
+        this.interaction = interaction;
     }
 
     @Override
@@ -47,8 +53,17 @@ public class Client implements Runnable {
 
         setConnectionWithServer();
         setSelector();
+        byte[] b;
 
         try {
+            //
+            setCommandsAvailable();
+            for (String s:
+                 commands.keySet()) {
+                System.out.println(s + " " + commands.get(s).getSecond());
+            }
+            //
+
             socketChannel.register(selector, SelectionKey.OP_WRITE);
             while (true) {
                 int count = selector.select();
@@ -63,13 +78,14 @@ public class Client implements Runnable {
                     iterator.remove();
                     if (selectionKey.isReadable()) {
                         socketChannel.register(selector, SelectionKey.OP_WRITE);
-                        byte[] b = getResponse();
+                        b = getResponse();
                         ServerResponse response = (ServerResponse) Serialization.deserialize(b);
                         System.out.println(response);
                     }
                     if (selectionKey.isWritable()) {
                         socketChannel.register(selector, SelectionKey.OP_READ);
-                        sendClientRequest(new ClientRequest("help", "", null));
+                        sendClientRequest(interaction.formRequest());
+                        //sendClientRequest(new ClientRequest("help", "", null));
                         System.out.println("Sent");
                     }
                 }
@@ -83,11 +99,20 @@ public class Client implements Runnable {
     }
 
 
-    private byte[] getResponse() throws IOException, ClassNotFoundException {
+    private byte[] getResponse() throws IOException {
         byte[] buffer = new byte[65555];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
         socketChannel.read(byteBuffer);
         return byteBuffer.array();
+    }
+
+    private void setCommandsAvailable() {
+        try {
+            byte[] a = getResponse();
+            commands = (HashMap) Serialization.deserialize(a);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     /*
