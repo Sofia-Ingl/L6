@@ -1,9 +1,11 @@
 package client;
 
 import client.util.Interaction;
+import client.util.UserElementGetter;
 import shared.serializable.ClientRequest;
 import shared.serializable.Pair;
 import shared.serializable.ServerResponse;
+import shared.util.CommandExecutionCode;
 import shared.util.Serialization;
 
 import java.io.*;
@@ -29,11 +31,11 @@ public class Client implements Runnable {
     private Selector selector;
     private SocketAddress socketAddress;
     private Interaction interaction;
-    private HashMap<String, Pair<String, Boolean>> commands;
 
     public static void main(String[] args) {
 
-        Client client = new Client("localhost", 666, 1, 10000, new Interaction((new Scanner(System.in))));
+        Client client = new Client("localhost", 666, 1, 10000,
+                new Interaction(new UserElementGetter()));
         client.run();
 
 
@@ -53,14 +55,18 @@ public class Client implements Runnable {
 
         setConnectionWithServer();
         setSelector();
+
         byte[] b;
+        CommandExecutionCode code;
+        ServerResponse response;
+        SelectionKey selectionKey;
 
         try {
             //
             setCommandsAvailable();
             for (String s:
-                 commands.keySet()) {
-                System.out.println(s + " " + commands.get(s).getSecond());
+                 interaction.getCommandsAvailable().keySet()) {
+                System.out.println(s + " " + interaction.getCommandsAvailable().get(s).getSecond());
             }
             //
 
@@ -74,12 +80,13 @@ public class Client implements Runnable {
                 Set keys = selector.selectedKeys();
                 Iterator iterator = keys.iterator();
                 while (iterator.hasNext()) {
-                    SelectionKey selectionKey = (SelectionKey) iterator.next();
+                    selectionKey = (SelectionKey) iterator.next();
                     iterator.remove();
                     if (selectionKey.isReadable()) {
                         socketChannel.register(selector, SelectionKey.OP_WRITE);
                         b = getResponse();
-                        ServerResponse response = (ServerResponse) Serialization.deserialize(b);
+                        response = (ServerResponse) Serialization.deserialize(b);
+                        code = response.getCode();
                         System.out.println(response);
                     }
                     if (selectionKey.isWritable()) {
@@ -109,7 +116,7 @@ public class Client implements Runnable {
     private void setCommandsAvailable() {
         try {
             byte[] a = getResponse();
-            commands = (HashMap) Serialization.deserialize(a);
+            interaction.setCommandsAvailable((HashMap) Serialization.deserialize(a));
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
