@@ -17,7 +17,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Scanner;
 import java.util.Set;
 
 public class Client implements Runnable {
@@ -92,7 +91,6 @@ public class Client implements Runnable {
                     if (selectionKey.isWritable()) {
                         socketChannel.register(selector, SelectionKey.OP_READ);
                         sendClientRequest(interaction.formRequest());
-                        //sendClientRequest(new ClientRequest("help", "", null));
                         System.out.println("Sent");
                     }
                 }

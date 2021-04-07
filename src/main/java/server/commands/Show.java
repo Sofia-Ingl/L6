@@ -24,7 +24,7 @@ public class Show extends Command {
                 responseString = new StringBuilder("Коллекция пуста!");
             } else {
                 responseString = new StringBuilder("В настоящий момент в коллекции находятся следующие элементы\n");
-                for (Movie movie : getCollectionStorage().getCollection()) {
+                for (Movie movie : getCollectionStorage().getSortedCollection()) {
                     responseString.append(movie).append("\n");
                 }
             }

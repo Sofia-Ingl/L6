@@ -302,4 +302,17 @@ public class CollectionStorage {
         return true;
 
     }
+
+    public ArrayList<Movie> getSortedCollection() {
+        if (sortedCollection != null && sortedCollectionUpdateTime.isAfter(updateTime)) {
+            return sortedCollection;
+        } else {
+            //System.out.println("Коллекция обновилась со времен последней сортировки!");
+            ArrayList<Movie> sortedCollection = new ArrayList<>(collection);
+            sortedCollection.sort(Comparator.naturalOrder());
+            this.sortedCollection = sortedCollection;
+            sortedCollectionUpdateTime = LocalDateTime.now();
+        }
+        return sortedCollection;
+    }
 }

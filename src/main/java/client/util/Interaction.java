@@ -39,7 +39,9 @@ public class Interaction {
                 command = commandWithArg[0].trim();
                 commandArg = commandWithArg[1].trim();
                 validation = commandIsValid(command);
-
+                if (!validation) {
+                    System.out.println("Команды с таким именем нет!");
+                }
                 System.out.println(validation);
                 System.out.println(commandsAvailable.get(command));
             }
