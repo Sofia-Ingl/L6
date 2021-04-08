@@ -29,12 +29,13 @@ public class CommandWrapper {
         return allCommandsAvailable;
     }
 
-    public HashMap<String, Pair<String, Boolean>> mapOfCommandsToSend() {
-        HashMap<String, Pair<String, Boolean>> mapToSend = new HashMap<>();
+
+    public HashMap<String, Pair<String, Pair<Boolean, Boolean>>> mapOfCommandsToSend() {
+        HashMap<String, Pair<String, Pair<Boolean, Boolean>>> mapToSend = new HashMap<>();
         Command command;
         for (String commandName: allCommandsAvailable.keySet()) {
             command = allCommandsAvailable.get(commandName);
-            mapToSend.put(commandName, new Pair<>(command.getUtility(), command.isInteractive()));
+            mapToSend.put(commandName, new Pair<>(command.getUtility(), new Pair<>(command.isInteractive(), command.hasStringArg())));
         }
         return mapToSend;
     }

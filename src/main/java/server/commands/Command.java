@@ -7,13 +7,15 @@ public abstract class Command implements Executables {
     private final String name;
     private final String utility;
     private final boolean isInteractive;
+    private final boolean hasStringArg;
     private CommandWrapper commandWrapper = null;
     private CollectionStorage collectionStorage = null;
 
-    public Command(String name, String utility, boolean isInteractive) {
+    public Command(String name, String utility, boolean isInteractive, boolean hasStringArg) {
         this.name = name;
         this.utility = utility;
         this.isInteractive = isInteractive;
+        this.hasStringArg = hasStringArg;
     }
 
     public String getName() {
@@ -42,5 +44,9 @@ public abstract class Command implements Executables {
 
     public boolean isInteractive() {
         return isInteractive;
+    }
+
+    public boolean hasStringArg() {
+        return hasStringArg;
     }
 }

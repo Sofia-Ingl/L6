@@ -7,7 +7,7 @@ public class Help extends Command {
     private String commandInfo = null;
 
     public Help() {
-        super("help", "вывести справку по доступным командам", false);
+        super("help", "вывести справку по доступным командам", false, false);
     }
 
 

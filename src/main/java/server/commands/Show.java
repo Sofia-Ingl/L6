@@ -6,7 +6,7 @@ import shared.serializable.Pair;
 public class Show extends Command {
 
     public Show() {
-        super("show", " вывести в стандартный поток вывода все элементы коллекции в строковом представлении", false);
+        super("show", " вывести в стандартный поток вывода все элементы коллекции в строковом представлении", false, false);
     }
 
     @Override

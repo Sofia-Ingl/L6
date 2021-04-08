@@ -65,7 +65,8 @@ public class Client implements Runnable {
             setCommandsAvailable();
             for (String s:
                  interaction.getCommandsAvailable().keySet()) {
-                System.out.println(s + " " + interaction.getCommandsAvailable().get(s).getSecond());
+                System.out.println(s + " интерактивна? " + interaction.getCommandsAvailable().get(s).getSecond().getFirst()
+                + " принимает строчной аргумент? " + interaction.getCommandsAvailable().get(s).getSecond().getSecond());
             }
             //
 
