@@ -1,13 +1,10 @@
 package client.util;
 
 import shared.data.Movie;
-import shared.exceptions.ScriptRecursionException;
 import shared.serializable.ClientRequest;
 import shared.serializable.Pair;
 import shared.util.CommandExecutionCode;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +16,7 @@ public class Interaction {
 
     private final Scanner defaultScanner = new Scanner(System.in);
     private Scanner currentScriptScanner = null;
-    private UserElementGetter userElementGetter;
+    private final UserElementGetter userElementGetter;
     /**
      * HashMap<String, Pair<String, Pair<Boolean, Boolean>>> commandsAvailable
      * Ключ - название команды
@@ -28,8 +25,8 @@ public class Interaction {
      */
     private HashMap<String, Pair<String, Pair<Boolean, Boolean>>> commandsAvailable;
     private boolean isScript = false;
-    private Stack<Path> files = new Stack<>();
-    private Stack<Scanner> scanners = new Stack<>();
+    private final Stack<Path> files = new Stack<>();
+    private final Stack<Scanner> scanners = new Stack<>();
     //private Stack<Pair<Path, Scanner>> scriptsWithScanners = new Stack<>();
 
 
@@ -76,12 +73,10 @@ public class Interaction {
                 }
             }
 
-            return new ClientRequest(command, commandArg, movie);
-
         } else {
 
             if (code == CommandExecutionCode.ERROR) {
-                // ошибка внутри скрипта, обнаруженная на сервере, выходим из всех скриптов removeALLfromStack
+                // ошибка внутри скрипта, обнаруженная на сервере, выходим из всех скриптов removeAllFromStack
                 removeAllFromStack();
                 return null;
             }
@@ -100,7 +95,7 @@ public class Interaction {
             validation = commandIsValid(command, commandArg);
             if (!validation) {
                 System.out.println("В скрипте обнаружена ошибка!");
-                // ошибка внутри скрипта, removeALLfromStack
+                // ошибка внутри скрипта, removeAllFromStack
                 removeAllFromStack();
                 return null;
             }
@@ -116,14 +111,14 @@ public class Interaction {
                 boolean success = putScriptOnStack(commandArg);
                 if (!success) {
                     removeAllFromStack();
-                    // ошибка в скрипте, выходим - removeALLfromStack
+                    // ошибка в скрипте, выходим - removeAllFromStack
                     return null;
                 }
             }
 
-            return new ClientRequest(command, commandArg, movie);
-
         }
+
+        return new ClientRequest(command, commandArg, movie);
     }
 
     private boolean putScriptOnStack(String path) {
