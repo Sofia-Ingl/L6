@@ -56,17 +56,18 @@ public class Client implements Runnable {
         setSelector();
 
         byte[] b;
-        CommandExecutionCode code;
+        CommandExecutionCode code = CommandExecutionCode.SUCCESS;
+        ClientRequest request;
         ServerResponse response;
         SelectionKey selectionKey;
 
         try {
             //
             setCommandsAvailable();
-            for (String s:
-                 interaction.getCommandsAvailable().keySet()) {
+            for (String s :
+                    interaction.getCommandsAvailable().keySet()) {
                 System.out.println(s + " интерактивна? " + interaction.getCommandsAvailable().get(s).getSecond().getFirst()
-                + " принимает строчной аргумент? " + interaction.getCommandsAvailable().get(s).getSecond().getSecond());
+                        + " принимает строчной аргумент? " + interaction.getCommandsAvailable().get(s).getSecond().getSecond());
             }
             //
 
@@ -91,7 +92,11 @@ public class Client implements Runnable {
                     }
                     if (selectionKey.isWritable()) {
                         socketChannel.register(selector, SelectionKey.OP_READ);
-                        sendClientRequest(interaction.formRequest());
+                        request = null;
+                        while (request == null) {
+                            request = interaction.formRequest(code);
+                        }
+                        sendClientRequest(request);
                         System.out.println("Sent");
                     }
                 }
