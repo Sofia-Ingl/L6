@@ -31,7 +31,7 @@ public class Server implements Runnable {
         String path = (args.length == 0) ? "" : args[0];
         CollectionStorage collectionStorage = new CollectionStorage();
         collectionStorage.loadCollection(path);
-        Command[] commands = {new Help(), new Add(), new Show(), new ExecuteScript(), new GoldenPalmsFilter()};
+        Command[] commands = {new Help(), new Add(), new Show(), new ExecuteScript(), new GoldenPalmsFilter(), new Exit()};
 
         Server server = new Server(666, 20000, new RequestProcessor(new CommandWrapper(collectionStorage, commands)));
         server.run();
@@ -61,17 +61,14 @@ public class Server implements Runnable {
 
             try (Socket socket = establishClientConnection()) {
 
-                //
-                //socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
-                socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
-                //
+               socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
+
 
                 noServerExitCode = handleRequests(socket);
 
             } catch (IOException e) {
 
                 // ПРИ ОШИБКЕ ИЛИ ПРЕВЫШЕННОМ ВРЕМЕНИ ОЖИДАНИЯ СЕРВЕР ЗАВЕРШАЕТ РАБОТУ
-                //e.printStackTrace();
                 System.out.println(e.getMessage());
                 noServerExitCode = false;
             }
@@ -82,7 +79,6 @@ public class Server implements Runnable {
                 serverSocket.close();
                 System.out.println("Сервер прекращает работу");
             } catch (IOException e) {
-                //e.printStackTrace();
                 System.out.println("Сервер прекращает работу с ошибкой");
             }
         }
@@ -120,7 +116,6 @@ public class Server implements Runnable {
     private boolean handleRequests(Socket socket) {
 
         ClientRequest clientRequest;
-        //Pair<CommandExecutionCode, ServerResponse> responseWithStatusCode;
         ServerResponse serverResponse;
 
         try {
@@ -130,11 +125,12 @@ public class Server implements Runnable {
                 byte[] b = new byte[66666];
                 socket.getInputStream().read(b);
                 clientRequest = (ClientRequest) Serialization.deserialize(b);
-                //System.out.println(clientRequest);
                 serverResponse = requestProcessor.processRequest(clientRequest);
-                //System.out.println(serverResponse);
-
-                socket.getOutputStream().write(Serialization.serialize(serverResponse));
+                if (clientRequest.getCommand().equals("exit")) {
+                    System.out.println(serverResponse.getResponseToPrint());
+                } else {
+                    socket.getOutputStream().write(Serialization.serialize(serverResponse));
+                }
 
 
             } while (serverResponse.getCode() != CommandExecutionCode.EXIT);
@@ -144,7 +140,6 @@ public class Server implements Runnable {
         } catch (IOException | ClassNotFoundException e) {
 
             System.out.println("Соединение разорвано");
-            //e.printStackTrace();
         }
 
         return true;

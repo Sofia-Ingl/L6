@@ -4,7 +4,6 @@ package server.util;
 import server.commands.Command;
 import shared.serializable.Pair;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -15,7 +14,6 @@ import java.util.HashMap;
 public class CommandWrapper {
 
     private final HashMap<String, Command> allCommandsAvailable = new HashMap<>();
-    //private final ArrayList<Command> lastSixCommands = new ArrayList<>();
 
     public CommandWrapper(CollectionStorage collectionStorage, Command[] listOfCommands) {
         for (Command command : listOfCommands) {

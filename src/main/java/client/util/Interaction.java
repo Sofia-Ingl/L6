@@ -23,7 +23,7 @@ public class Interaction {
      * Значение - пара, где 1 элемент - описание команды, второй элмент - пара булевых значений;
      * Первое из них говорит, интерактивна ли команда. Второе - принимает ли она строчной аргумент.
      */
-    private HashMap<String, Pair<String, Pair<Boolean, Boolean>>> commandsAvailable;
+    private HashMap<String, Pair<String, Pair<Boolean, Boolean>>> commandsAvailable = null;
     private boolean isScript = false;
     private final Stack<Path> files = new Stack<>();
     private final Stack<Scanner> scanners = new Stack<>();
@@ -113,6 +113,10 @@ public class Interaction {
                     // ошибка в скрипте, выходим - removeAllFromStack
                     return null;
                 }
+            }
+
+            if (command.equals("exit")) {
+                removeAllFromStack();
             }
 
         }

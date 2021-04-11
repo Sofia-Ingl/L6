@@ -24,21 +24,16 @@ public class Client implements Runnable {
 
     private String host;
     private int port;
-    private final int reconnectionTimeout;
-    private int reconnectionAttempts = 0;
-    private final int maxReconnectionAttempts;
     private SocketChannel socketChannel;
     private Selector selector;
     private SocketAddress socketAddress;
     private Interaction interaction;
-    private boolean needCommands = true;
 
     public static void main(String[] args) {
 
         Interaction interaction = new Interaction(new UserElementGetter());
         boolean reconnect;
-        Client client = new Client("localhost", 666, 3, 1000,
-                interaction);
+        Client client = new Client("localhost", 666, interaction);
         client.run();
         System.out.println("Хотите переподключиться? (да/нет)");
         reconnect = interaction.readLine().trim().toLowerCase().equals("да");
@@ -52,11 +47,9 @@ public class Client implements Runnable {
     }
 
 
-    public Client(String host, int port, int maxReconnectionAttempts, int reconnectionTimeout, Interaction interaction) {
+    public Client(String host, int port, Interaction interaction) {
         this.host = host;
         this.port = port;
-        this.maxReconnectionAttempts = maxReconnectionAttempts;
-        this.reconnectionTimeout = reconnectionTimeout;
         this.interaction = interaction;
     }
 
@@ -78,9 +71,6 @@ public class Client implements Runnable {
 
             try {
 
-
-                // ЗАГРУЗКА КОМАНД
-                //
                 socketChannel.register(selector, SelectionKey.OP_READ);
                 selector.select();
                 selector.selectedKeys().clear();
@@ -106,16 +96,16 @@ public class Client implements Runnable {
                         selectionKey = (SelectionKey) iterator.next();
                         iterator.remove();
                         if (selectionKey.isReadable()) {
+//                            try {
+                            socketChannel.register(selector, SelectionKey.OP_WRITE);
                             b = getResponse();
-                            try {
-                                response = (ServerResponse) Serialization.deserialize(b);
-                                code = response.getCode();
-                                System.out.println(response);
-                                socketChannel.register(selector, SelectionKey.OP_WRITE);
-                            } catch (ClassCastException e) {
-                                System.out.println("ТВОЮ Ж ДИВИЗИЮ!");
-                                socketChannel.register(selector, SelectionKey.OP_READ);
-                            }
+                            response = (ServerResponse) Serialization.deserialize(b);
+                            code = response.getCode();
+                            System.out.println(response);
+//                            } catch (ClassCastException e) {
+//                                System.out.println("ТВОЮ Ж ДИВИЗИЮ!");
+//                                socketChannel.register(selector, SelectionKey.OP_READ);
+//                            }
                         }
 
                         if (selectionKey.isWritable()) {
@@ -138,9 +128,10 @@ public class Client implements Runnable {
                     }
                 }
 
+                System.out.println("Клиент завершил работу приложения.");
+                System.exit(0);
+
             } catch (IOException | ClassNotFoundException e) {
-                //e.printStackTrace();
-                System.out.println(e.getMessage());
                 System.out.println("Соединение разорвано");
             }
         } catch (ConnectException e) {
@@ -157,25 +148,14 @@ public class Client implements Runnable {
         return byteBuffer.array();
     }
 
-//    private void setCommandsAvailable() {
-//        System.out.println("AAAAAAAAA");
-//        try {
-//            byte[] a = getResponse();
-//            HashMap<String, Pair<String, Pair<Boolean, Boolean>>> map = (HashMap) Serialization.deserialize(a);
-//            interaction.setCommandsAvailable(map);
-//        } catch (StreamCorruptedException e) {
-//            System.out.println(e.getMessage());
-//        } catch (IOException | ClassNotFoundException e) {
-//            e.printStackTrace();
-//            System.out.println(e.getMessage());
-//        }
-//    }
-
     private void setCommandsAvailable() {
         try {
             byte[] a = getResponse();
             HashMap<String, Pair<String, Pair<Boolean, Boolean>>> map = (HashMap) Serialization.deserialize(a);
+
+            System.out.println("Список доступных команд инициализирован");
             interaction.setCommandsAvailable(map);
+
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
@@ -183,32 +163,21 @@ public class Client implements Runnable {
     }
 
 
-    // ПЕРЕПИСАТЬ С ПОМОЩЬЮ SERIALIZE
     private void sendClientRequest(ClientRequest clientRequest) {
 
-        try (ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
-             ObjectOutputStream objectStream = new ObjectOutputStream(byteArrayStream)) {
-
-            objectStream.writeObject(clientRequest);
-            socketChannel.write(ByteBuffer.wrap(byteArrayStream.toByteArray()));
+        try {
+            socketChannel.write(ByteBuffer.wrap(Serialization.serialize(clientRequest)));
             System.out.println("Запрос успешно отправлен.");
-
         } catch (IOException e) {
-            //e.printStackTrace();
-            System.out.println("Ошибка при отправке пользовательского запроса на сервер");
+            System.out.println("Возникла ошибка при отправке пользовательского запроса на сервер");
         }
     }
 
 
-    //private void setConnectionWithServer() throws ConnectException {
     private void setConnectionWithServer() throws ConnectException {
         try {
             socketAddress = new InetSocketAddress(host, port);
             socketChannel = SocketChannel.open(socketAddress);
-            //if (socketChannel == null) throw new ConnectException("Сервер недоступен.");
-
-            //socketChannel.socket().getInputStream().readAllBytes();
-
             socketChannel.configureBlocking(false);
             System.out.println("Соединение с сервером в неблокирующем режиме установлено");
         } catch (IOException e) {
@@ -225,10 +194,6 @@ public class Client implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public Selector getSelector() {
-        return selector;
     }
 
 
