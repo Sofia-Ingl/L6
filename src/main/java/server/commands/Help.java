@@ -2,7 +2,7 @@ package server.commands;
 
 import shared.serializable.Pair;
 
-public class Help extends Command {
+public class Help extends UserCommand {
 
     private String commandInfo = null;
 
@@ -22,8 +22,8 @@ public class Help extends Command {
             }
             if (commandInfo == null) {
                 StringBuilder help = new StringBuilder("\n" + "ИНФОРМАЦИЯ О ДОСТУПНЫХ КОМАНДАХ" + "\n");
-                for (Command command : getCommandWrapper().getAllCommandsAvailable().values()) {
-                    help.append(command.getName()).append(" ~> ").append(command.getUtility()).append("\n");
+                for (UserCommand userCommand : getCommandWrapper().getAllCommandsAvailable().values()) {
+                    help.append(userCommand.getName()).append(" ~> ").append(userCommand.getUtility()).append("\n");
                 }
                 commandInfo = help.toString();
             }

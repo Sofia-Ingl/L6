@@ -3,7 +3,7 @@ package server.commands;
 import shared.data.Movie;
 import shared.serializable.Pair;
 
-public class Show extends Command {
+public class Show extends UserCommand {
 
     public Show() {
         super("show", " вывести в стандартный поток вывода все элементы коллекции в строковом представлении", false, false);

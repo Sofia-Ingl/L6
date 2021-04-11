@@ -2,7 +2,7 @@ package server.commands;
 
 import shared.serializable.Pair;
 
-public class Exit extends Command {
+public class Exit extends UserCommand {
 
     public Exit() {
         super("exit", "завершить программу (без сохранения в файл)", false, false);

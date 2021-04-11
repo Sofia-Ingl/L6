@@ -3,7 +3,7 @@ package server.commands;
 import shared.data.Movie;
 import shared.serializable.Pair;
 
-public class Add extends Command {
+public class Add extends UserCommand {
 
     public Add() {
         super("add", "добавить новый элемент в коллекцию", true, false);

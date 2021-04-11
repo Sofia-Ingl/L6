@@ -4,7 +4,6 @@ import server.commands.*;
 import server.util.CollectionStorage;
 import server.util.CommandWrapper;
 import shared.util.CommandExecutionCode;
-import shared.serializable.Pair;
 import server.util.RequestProcessor;
 import shared.serializable.ClientRequest;
 import shared.serializable.ServerResponse;
@@ -31,9 +30,10 @@ public class Server implements Runnable {
         String path = (args.length == 0) ? "" : args[0];
         CollectionStorage collectionStorage = new CollectionStorage();
         collectionStorage.loadCollection(path);
-        Command[] commands = {new Help(), new Add(), new Show(), new ExecuteScript(), new GoldenPalmsFilter(), new Exit()};
+        InnerServerCommand[] innerServerCommands = {new Save()};
+        UserCommand[] userCommands = {new Help(), new Add(), new Show(), new ExecuteScript(), new GoldenPalmsFilter(), new Exit()};
 
-        Server server = new Server(666, 20000, new RequestProcessor(new CommandWrapper(collectionStorage, commands)));
+        Server server = new Server(666, 20000, new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
         server.run();
     }
 
@@ -70,6 +70,7 @@ public class Server implements Runnable {
 
                 // ПРИ ОШИБКЕ ИЛИ ПРЕВЫШЕННОМ ВРЕМЕНИ ОЖИДАНИЯ СЕРВЕР ЗАВЕРШАЕТ РАБОТУ
                 System.out.println(e.getMessage());
+                requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 noServerExitCode = false;
             }
         }

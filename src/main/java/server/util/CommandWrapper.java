@@ -1,7 +1,8 @@
 package server.util;
 
 
-import server.commands.Command;
+import server.commands.UserCommand;
+import server.commands.InnerServerCommand;
 import shared.serializable.Pair;
 
 import java.util.HashMap;
@@ -13,27 +14,38 @@ import java.util.HashMap;
  */
 public class CommandWrapper {
 
-    private final HashMap<String, Command> allCommandsAvailable = new HashMap<>();
+    private final HashMap<String, UserCommand> allCommandsAvailable = new HashMap<>();
+    private final HashMap<String, InnerServerCommand> allInnerCommands = new HashMap<>();
 
-    public CommandWrapper(CollectionStorage collectionStorage, Command[] listOfCommands) {
-        for (Command command : listOfCommands) {
-            allCommandsAvailable.put(command.getName(), command);
+    public CommandWrapper(CollectionStorage collectionStorage, UserCommand[] listOfUserCommands, InnerServerCommand[] innerServerCommands) {
+
+        for (UserCommand userCommand : listOfUserCommands) {
+            allCommandsAvailable.put(userCommand.getName(), userCommand);
+            userCommand.setCommandWrapper(this);
+            userCommand.setCollectionStorage(collectionStorage);
+        }
+
+        for (InnerServerCommand command : innerServerCommands) {
+            allInnerCommands.put(command.getName(), command);
             command.setCommandWrapper(this);
             command.setCollectionStorage(collectionStorage);
         }
     }
 
-    public HashMap<String, Command> getAllCommandsAvailable() {
+    public HashMap<String, UserCommand> getAllCommandsAvailable() {
         return allCommandsAvailable;
     }
 
+    public HashMap<String, InnerServerCommand> getAllInnerCommands() {
+        return allInnerCommands;
+    }
 
     public HashMap<String, Pair<String, Pair<Boolean, Boolean>>> mapOfCommandsToSend() {
         HashMap<String, Pair<String, Pair<Boolean, Boolean>>> mapToSend = new HashMap<>();
-        Command command;
+        UserCommand userCommand;
         for (String commandName: allCommandsAvailable.keySet()) {
-            command = allCommandsAvailable.get(commandName);
-            mapToSend.put(commandName, new Pair<>(command.getUtility(), new Pair<>(command.isInteractive(), command.hasStringArg())));
+            userCommand = allCommandsAvailable.get(commandName);
+            mapToSend.put(commandName, new Pair<>(userCommand.getUtility(), new Pair<>(userCommand.isInteractive(), userCommand.hasStringArg())));
         }
         return mapToSend;
     }

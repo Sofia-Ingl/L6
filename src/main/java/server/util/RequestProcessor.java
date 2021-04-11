@@ -1,6 +1,6 @@
 package server.util;
 
-import server.commands.Command;
+import server.commands.UserCommand;
 import shared.serializable.ClientRequest;
 import shared.serializable.Pair;
 import shared.serializable.ServerResponse;
@@ -16,9 +16,9 @@ public class RequestProcessor {
 
     public ServerResponse processRequest(ClientRequest request) {
 
-        Command command = commandWrapper.getAllCommandsAvailable().get(request.getCommand());
+        UserCommand userCommand = commandWrapper.getAllCommandsAvailable().get(request.getCommand());
         CommandExecutionCode code = CommandExecutionCode.SUCCESS;
-        Pair<Boolean, String> commandResult = command.execute(request.getCommandArgument(), request.getCreatedObject());
+        Pair<Boolean, String> commandResult = userCommand.execute(request.getCommandArgument(), request.getCreatedObject());
 //        if (command.getName().equals("exit")) {
 //            //code = CommandExecutionCode.EXIT;
 //        }

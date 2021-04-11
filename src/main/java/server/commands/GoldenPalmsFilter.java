@@ -2,7 +2,7 @@ package server.commands;
 
 import shared.serializable.Pair;
 
-public class GoldenPalmsFilter extends Command {
+public class GoldenPalmsFilter extends UserCommand {
 
     public GoldenPalmsFilter() {
         super("filter_greater_than_golden_palm_count","вывести элементы, значение поля goldenPalmCount которых больше заданного", false, true);
