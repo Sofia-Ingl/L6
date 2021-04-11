@@ -36,7 +36,7 @@ public class Client implements Runnable {
     public static void main(String[] args) {
 
         Interaction interaction = new Interaction(new UserElementGetter());
-        boolean reconnect = false;
+        boolean reconnect;
         Client client = new Client("localhost", 666, 3, 1000,
                 interaction);
         client.run();
@@ -120,11 +120,16 @@ public class Client implements Runnable {
                         selectionKey = (SelectionKey) iterator.next();
                         iterator.remove();
                         if (selectionKey.isReadable()) {
-                            socketChannel.register(selector, SelectionKey.OP_WRITE);
                             b = getResponse();
-                            response = (ServerResponse) Serialization.deserialize(b);
-                            code = response.getCode();
-                            System.out.println(response);
+                            try {
+                                response = (ServerResponse) Serialization.deserialize(b);
+                                code = response.getCode();
+                                System.out.println(response);
+                                socketChannel.register(selector, SelectionKey.OP_WRITE);
+                            } catch (ClassCastException e) {
+                                System.out.println("ТВОЮ Ж ДИВИЗИЮ!");
+                                socketChannel.register(selector, SelectionKey.OP_READ);
+                            }
                         }
                         if (selectionKey.isWritable()) {
                             socketChannel.register(selector, SelectionKey.OP_READ);
@@ -198,7 +203,7 @@ public class Client implements Runnable {
             interaction.setCommandsAvailable(map);
         } catch (StreamCorruptedException e) {
             //e.printStackTrace();
-            setCommandsAvailable();
+            //setCommandsAvailable();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             System.out.println(e.getMessage());

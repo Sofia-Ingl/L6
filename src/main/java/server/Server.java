@@ -62,6 +62,7 @@ public class Server implements Runnable {
             try (Socket socket = establishClientConnection()) {
 
                 //
+                //socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
                 socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
                 //
 
