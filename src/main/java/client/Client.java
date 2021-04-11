@@ -43,8 +43,6 @@ public class Client implements Runnable {
         System.out.println("Хотите переподключиться? (да/нет)");
         reconnect = interaction.readLine().trim().toLowerCase().equals("да");
         while (reconnect) {
-            //client = new Client("localhost", 666, 3, 1000,
-            //       interaction);
             client.run();
             System.out.println("Хотите переподключиться? (да/нет)");
             reconnect = interaction.readLine().trim().toLowerCase().equals("да");
@@ -72,40 +70,27 @@ public class Client implements Runnable {
         SelectionKey selectionKey;
         boolean clientExitCode = false;
 
-        //while (!clientExitCode && reconnectionAttempts < maxReconnectionAttempts) {
-        //  while (!clientExitCode) {
 
         try {
 
             setConnectionWithServer();
-
-//                try {
-//                    if (needCommands) {
-//                        System.out.println("NEED");
-//                        sendClientRequest(new ClientRequest("need_commands", "", null));
-//                        needCommands = false;
-//                        byte[] commands = getResponse();
-//                        interaction.setCommandsAvailable((HashMap) Serialization.deserialize(commands));
-//                    } else {
-//                        sendClientRequest(new ClientRequest("dont_need_commands", "", null));
-//                    }
-//
-//                } catch (IOException | ClassNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-
             setSelector();
 
-            setCommandsAvailable();
-
             try {
+
+
+                // ЗАГРУЗКА КОМАНД
                 //
+                socketChannel.register(selector, SelectionKey.OP_READ);
+                selector.select();
+                selector.selectedKeys().clear();
+                setCommandsAvailable();
+
                 for (String s :
                         interaction.getCommandsAvailable().keySet()) {
                     System.out.println(s + " интерактивна? " + interaction.getCommandsAvailable().get(s).getSecond().getFirst()
                             + " принимает строчной аргумент? " + interaction.getCommandsAvailable().get(s).getSecond().getSecond());
                 }
-                //
 
                 socketChannel.register(selector, SelectionKey.OP_WRITE);
                 while (!clientExitCode) {
@@ -116,6 +101,7 @@ public class Client implements Runnable {
 
                     Set keys = selector.selectedKeys();
                     Iterator iterator = keys.iterator();
+
                     while (iterator.hasNext()) {
                         selectionKey = (SelectionKey) iterator.next();
                         iterator.remove();
@@ -131,6 +117,7 @@ public class Client implements Runnable {
                                 socketChannel.register(selector, SelectionKey.OP_READ);
                             }
                         }
+
                         if (selectionKey.isWritable()) {
                             socketChannel.register(selector, SelectionKey.OP_READ);
                             request = null;
@@ -143,47 +130,22 @@ public class Client implements Runnable {
                                 throw new IOException();
                             }
 
-                            //
-                            //
                             if (request.getCommand().equals("exit")) {
                                 clientExitCode = true;
                             }
-                            //
-                            //
-                            //System.out.println("Sent");
+
                         }
                     }
                 }
 
             } catch (IOException | ClassNotFoundException e) {
                 //e.printStackTrace();
+                System.out.println(e.getMessage());
                 System.out.println("Соединение разорвано");
             }
         } catch (ConnectException e) {
             System.out.println("Ошибка соединения");
-//
-//                System.out.println(e.getMessage());
-//                try {
-//                    //socketChannel.close();
-//                    socketChannel.finishConnect();
-//                } catch (IOException ioException) {
-//                    ioException.printStackTrace();
-//                }
-//                reconnectionAttempts++;
-//
-//                if (reconnectionAttempts == maxReconnectionAttempts) {
-//                    System.out.println("Число попыток переподключения исчерпано, клиент завершает работу.");
-//                } else {
-//                    System.out.println("До следующей поытки подключение осталось " + reconnectionTimeout / 1000 + " сек");
-//                    try {
-//                        Thread.sleep(reconnectionTimeout);
-//                    } catch (Exception exception) {
-//                        exception.printStackTrace();
-//                    }
-//                }
-//
-//
-//            }
+
         }
     }
 
@@ -195,15 +157,25 @@ public class Client implements Runnable {
         return byteBuffer.array();
     }
 
+//    private void setCommandsAvailable() {
+//        System.out.println("AAAAAAAAA");
+//        try {
+//            byte[] a = getResponse();
+//            HashMap<String, Pair<String, Pair<Boolean, Boolean>>> map = (HashMap) Serialization.deserialize(a);
+//            interaction.setCommandsAvailable(map);
+//        } catch (StreamCorruptedException e) {
+//            System.out.println(e.getMessage());
+//        } catch (IOException | ClassNotFoundException e) {
+//            e.printStackTrace();
+//            System.out.println(e.getMessage());
+//        }
+//    }
+
     private void setCommandsAvailable() {
-        System.out.println("AAAAAAAAA");
         try {
             byte[] a = getResponse();
             HashMap<String, Pair<String, Pair<Boolean, Boolean>>> map = (HashMap) Serialization.deserialize(a);
             interaction.setCommandsAvailable(map);
-        } catch (StreamCorruptedException e) {
-            //e.printStackTrace();
-            //setCommandsAvailable();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
