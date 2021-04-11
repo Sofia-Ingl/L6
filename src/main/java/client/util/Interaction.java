@@ -205,4 +205,8 @@ public class Interaction {
     public HashMap<String, Pair<String, Pair<Boolean, Boolean>>> getCommandsAvailable() {
         return commandsAvailable;
     }
+
+    public String readLine() {
+        return defaultScanner.nextLine();
+    }
 }
