@@ -254,6 +254,24 @@ public class CollectionStorage {
         }
     }
 
+    public String returnGreaterThanGoldenPalms(long goldenPalms) {
+        lastAccessTime = LocalDateTime.now();
+        StringBuilder builder = new StringBuilder();
+        builder.append("Элементы, значение поля goldenPalmsCount у которых больше заданного\n");
+        boolean isAny = false;
+        for (Movie movie : collection) {
+            if (movie.getGoldenPalmCount() > goldenPalms) {
+                //System.out.println(movie);
+                isAny = true;
+                builder.append(movie).append("\n");
+            }
+        }
+        if (isAny) {
+            return builder.toString();
+        }
+        return "В коллекции не было элементов, удовлетворяющих условию";
+    }
+
     /**
      * Метод, выводящий в System.out элементы коллекции по возрастанию.
      */

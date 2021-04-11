@@ -9,6 +9,7 @@ import shared.util.CommandExecutionCode;
 import shared.util.Serialization;
 
 import java.io.*;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -23,9 +24,9 @@ public class Client implements Runnable {
 
     private String host;
     private int port;
-    private int reconnectionTimeout;
+    private final int reconnectionTimeout;
     private int reconnectionAttempts = 0;
-    private int maxReconnectionAttempts;
+    private final int maxReconnectionAttempts;
     private SocketChannel socketChannel;
     private Selector selector;
     private SocketAddress socketAddress;
@@ -33,7 +34,7 @@ public class Client implements Runnable {
 
     public static void main(String[] args) {
 
-        Client client = new Client("localhost", 666, 1, 10000,
+        Client client = new Client("localhost", 666, 3, 10000,
                 new Interaction(new UserElementGetter()));
         client.run();
 
@@ -52,14 +53,19 @@ public class Client implements Runnable {
     @Override
     public void run() {
 
-        setConnectionWithServer();
-        setSelector();
-
         byte[] b;
         CommandExecutionCode code = CommandExecutionCode.SUCCESS;
         ClientRequest request;
         ServerResponse response;
         SelectionKey selectionKey;
+        boolean clientExitCode = false;
+
+//        while (!clientExitCode && reconnectionAttempts < maxReconnectionAttempts) {
+//
+//            try {
+        setConnectionWithServer();
+
+        setSelector();
 
         try {
             //
@@ -72,7 +78,7 @@ public class Client implements Runnable {
             //
 
             socketChannel.register(selector, SelectionKey.OP_WRITE);
-            while (true) {
+            while (!clientExitCode) {
                 int count = selector.select();
                 if (count == 0) {
                     break;
@@ -97,14 +103,41 @@ public class Client implements Runnable {
                             request = interaction.formRequest(code);
                         }
                         sendClientRequest(request);
-                        System.out.println("Sent");
+                        //
+                        //
+                        if (request.getCommand().equals("exit")) {
+                            clientExitCode = true;
+                        }
+                        //
+                        //
+                        //System.out.println("Sent");
                     }
                 }
             }
 
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            System.out.println("Соединение разорвано");
         }
+//            } catch (ConnectException e) {
+//
+//                System.out.println(e.getMessage());
+//                reconnectionAttempts++;
+//
+//                if (reconnectionAttempts == maxReconnectionAttempts) {
+//                    System.out.println("Число попыток переподключения исчерпано, клиент завершает работу.");
+//                } else {
+//                    System.out.println("До следующей поытки подключение осталось " + reconnectionTimeout / 1000 + " сек");
+//                    try {
+//                        Thread.sleep(reconnectionTimeout);
+//                    } catch (Exception exception) {
+//                        exception.printStackTrace();
+//                    }
+//                }
+
+//
+//            }
+//        }
 
 
     }
@@ -122,65 +155,10 @@ public class Client implements Runnable {
             byte[] a = getResponse();
             interaction.setCommandsAvailable((HashMap) Serialization.deserialize(a));
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
-
-    /*
-
-    private void fillTheBuffer() {
-        try {
-            socketChannel.register(selector, SelectionKey.OP_READ);
-
-            while (true) {
-                int count = selector.select();
-                // нечего обрабатывать
-                if (count == 0) {
-                    continue;
-                }
-                inputBuffer.clear();
-                socketChannel.read(inputBuffer);
-                inputBuffer.flip();
-                selector.selectedKeys().clear();
-                break;
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    private ServerResponse readServerResponse() {
-
-        fillTheBuffer();
-
-        try {
-//            inputBuffer.clear();
-//            socketChannel.read(inputBuffer);
-//            inputBuffer.flip();
-
-            fillTheBuffer();
-
-            try (ByteArrayInputStream buf = new ByteArrayInputStream(inputBuffer.array());
-                 ObjectInputStream objectReader = new ObjectInputStream(buf)) {
-
-                return (ServerResponse) objectReader.readObject();
-
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        return null;
-    }
-
-     */
 
 
     private void sendClientRequest(ClientRequest clientRequest) {
@@ -190,13 +168,16 @@ public class Client implements Runnable {
 
             objectStream.writeObject(clientRequest);
             socketChannel.write(ByteBuffer.wrap(byteArrayStream.toByteArray()));
+            System.out.println("Запрос успешно отправлен.");
 
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            System.out.println("Ошибка при отправке пользовательского запроса на сервер");
         }
     }
 
 
+    //private void setConnectionWithServer() throws ConnectException {
     private void setConnectionWithServer() {
         try {
             socketAddress = new InetSocketAddress(host, port);
@@ -205,6 +186,9 @@ public class Client implements Runnable {
             System.out.println("Соединение с сервером в неблокирующем режиме установлено");
         } catch (IOException e) {
             e.printStackTrace();
+            //
+            //throw new ConnectException("Ошибка соединения с сервером");
+            //
         }
     }
 

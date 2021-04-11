@@ -58,7 +58,6 @@ public class Interaction {
                 if (!validation) {
                     System.out.println("Команды с таким именем нет!");
                 }
-                System.out.println(validation);
                 //System.out.println(commandsAvailable.get(command));
             }
 

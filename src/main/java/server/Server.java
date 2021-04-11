@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.channels.IllegalBlockingModeException;
 
 public class Server implements Runnable {
@@ -25,20 +26,16 @@ public class Server implements Runnable {
     private RequestProcessor requestProcessor;
 
 
-
-
     public static void main(String[] args) {
 
         String path = (args.length == 0) ? "" : args[0];
         CollectionStorage collectionStorage = new CollectionStorage();
         collectionStorage.loadCollection(path);
-        Command[] commands = {new Help(), new Add(), new Show(), new ExecuteScript()};
+        Command[] commands = {new Help(), new Add(), new Show(), new ExecuteScript(), new GoldenPalmsFilter()};
 
         Server server = new Server(666, 20000, new RequestProcessor(new CommandWrapper(collectionStorage, commands)));
         server.run();
     }
-
-
 
 
     Server(int port, int timeOut, RequestProcessor requestProcessor) {
@@ -73,7 +70,7 @@ public class Server implements Runnable {
             } catch (IOException e) {
 
                 // ПРИ ОШИБКЕ ИЛИ ПРЕВЫШЕННОМ ВРЕМЕНИ ОЖИДАНИЯ СЕРВЕР ЗАВЕРШАЕТ РАБОТУ
-                e.printStackTrace();
+                //e.printStackTrace();
                 System.out.println(e.getMessage());
                 noServerExitCode = false;
             }
@@ -84,7 +81,7 @@ public class Server implements Runnable {
                 serverSocket.close();
                 System.out.println("Сервер прекращает работу");
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 System.out.println("Сервер прекращает работу с ошибкой");
             }
         }
@@ -111,8 +108,10 @@ public class Server implements Runnable {
             Socket clientSocket = serverSocket.accept();
             System.out.println("Соединение установлено");
             return clientSocket;
+        } catch (SocketTimeoutException e) {
+            throw new ConnectException("Превышено время ожидания клиентского запроса.");
         } catch (IOException | IllegalBlockingModeException | IllegalArgumentException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             throw new ConnectException("Ошибка соединения.");
         }
     }
@@ -120,7 +119,7 @@ public class Server implements Runnable {
     private boolean handleRequests(Socket socket) {
 
         ClientRequest clientRequest;
-        Pair<CommandExecutionCode, ServerResponse> responseWithStatusCode;
+        //Pair<CommandExecutionCode, ServerResponse> responseWithStatusCode;
         ServerResponse serverResponse;
 
         try {
@@ -143,8 +142,8 @@ public class Server implements Runnable {
 
         } catch (IOException | ClassNotFoundException e) {
 
-            System.out.println("fuck");
-            e.printStackTrace();
+            System.out.println("Соединение разорвано");
+            //e.printStackTrace();
         }
 
         return true;
