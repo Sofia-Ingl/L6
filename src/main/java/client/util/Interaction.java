@@ -6,16 +6,17 @@ import shared.serializable.Pair;
 import shared.util.CommandExecutionCode;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Stack;
 
-public class Interaction {
+public class Interaction extends InteractiveConsoleUtils {
 
-    private final Scanner defaultScanner = new Scanner(System.in);
-    private Scanner currentScriptScanner = null;
+    private final Scanner defaultScanner;
     private final UserElementGetter userElementGetter;
     /**
      * HashMap<String, Pair<String, Pair<Boolean, Boolean>>> commandsAvailable
@@ -27,15 +28,16 @@ public class Interaction {
     private boolean isScript = false;
     private final Stack<Path> files = new Stack<>();
     private final Stack<Scanner> scanners = new Stack<>();
-    //private Stack<Pair<Path, Scanner>> scriptsWithScanners = new Stack<>();
 
 
-    public Interaction(UserElementGetter userElementGetter) {
-        //this.scanner = scanner;
+    public Interaction(InputStream in, OutputStream out, UserElementGetter userElementGetter) {
+        setIn(in);
+        setOut(out);
+        defaultScanner = new Scanner(in);
         this.userElementGetter = userElementGetter;
 
-        this.userElementGetter.setIn(System.in);
-        this.userElementGetter.setOut(System.out);
+        this.userElementGetter.setIn(in);
+        this.userElementGetter.setOut(out);
         this.userElementGetter.setScanner(defaultScanner);
     }
 
@@ -50,15 +52,14 @@ public class Interaction {
         if (!isScript) {
 
             while (!validation) {
-                System.out.print(">");
+                printMessage(">");
                 commandWithArg = (defaultScanner.nextLine() + " ").split(" ", 2);
                 command = commandWithArg[0].trim();
                 commandArg = commandWithArg[1].trim();
                 validation = commandIsValid(command, commandArg);
                 if (!validation) {
-                    System.out.println("Команды с таким именем нет!");
+                    printlnMessage("Команды с таким именем нет!");
                 }
-                //System.out.println(commandsAvailable.get(command));
             }
 
             if (commandsAvailable.get(command).getSecond().getFirst()) {
@@ -79,7 +80,7 @@ public class Interaction {
                 removeAllFromStack();
                 return null;
             }
-            while (!currentScriptScanner.hasNextLine()) {
+            while (!getScanner().hasNextLine()) {
                 removeLastFromStack();
                 if (!isScript) {
                     return null;
@@ -88,19 +89,22 @@ public class Interaction {
                 // если снят последний скрипт и установлен isScript = false, возвращаем null
             }
 
-            commandWithArg = (currentScriptScanner.nextLine() + " ").split(" ", 2);
+            commandWithArg = (getScanner().nextLine() + " ").split(" ", 2);
             command = commandWithArg[0].trim();
+            if (command.isEmpty()) {
+                return null;
+            }
             commandArg = commandWithArg[1].trim();
             validation = commandIsValid(command, commandArg);
             if (!validation) {
-                System.out.println("В скрипте обнаружена ошибка!");
+                printlnMessage("В скрипте обнаружена ошибка!");
                 // ошибка внутри скрипта, removeAllFromStack
                 removeAllFromStack();
                 return null;
             }
 
-            System.out.print(">");
-            System.out.println(command + " " + commandArg);
+            printMessage(">");
+            printlnMessage(command + " " + commandArg);
 
             if (commandsAvailable.get(command).getSecond().getFirst()) {
                 movie = userElementGetter.movieGetter();
@@ -130,34 +134,30 @@ public class Interaction {
 
             Path realPath = Paths.get(path).toRealPath();
             if (realPath.toString().length() > 3 && realPath.toString().trim().startsWith("/dev")) {
-                System.out.println("Пошалить вздумал?) Не в мою смену, братишка!");
+                printlnMessage("Пошалить вздумал?) Не в мою смену, братишка!");
                 return false;
             }
 
-            //Pair<Path, Scanner> script = new Pair<>(realPath, new Scanner(realPath));
             // ПРОВЕРКА РЕКУРСИИ
             if (files.contains(realPath)) {
-                System.out.println("РЕКУРСИЯ В СКРИПТЕ!!!");
+                printlnMessage("РЕКУРСИЯ В СКРИПТЕ!!!");
                 return false;
             }
 
             // НАСТРОЙКИ ЕСЛИ В СКРИПТЕ НЕТ РЕКУРСИИ И ПРОЧИХ ПОДСТАВ
             isScript = true;
-            currentScriptScanner = new Scanner(realPath);
+            setScanner(new Scanner(realPath));
 
             files.push(realPath);
-            scanners.push(currentScriptScanner);
+            scanners.push(getScanner());
 
-            userElementGetter.setScanner(currentScriptScanner);
-            userElementGetter.setScriptReader(true);
-            //
-            // НЕ ВСЕ ДОПИСАНО!
-            //
+            userElementGetter.setScanner(getScanner());
+            userElementGetter.setSuppressMessages(true);
+
             return true;
 
         } catch (IOException | SecurityException | IllegalArgumentException e) {
-            System.out.println("Ой ффсе! Кажется, кто-то подсунул паленый скрипт :c Признавайся, чертяка, это ты сделал?!");
-            //e.printStackTrace();
+            printlnMessage("Ой ффсе! Кажется, кто-то подсунул паленый скрипт :c Признавайся, чертяка, это ты сделал?!");
         }
         return false;
     }
@@ -165,15 +165,15 @@ public class Interaction {
     private void removeLastFromStack() {
         Scanner scannerToClose = scanners.pop();
         scannerToClose.close();
-        System.out.println("Выход из скрипта " + files.pop().toString());
+        printlnMessage("Выход из скрипта " + files.pop().toString());
         if (scanners.isEmpty()) {
             isScript = false;
-            currentScriptScanner = null;
+            setScanner(null);
             userElementGetter.setScanner(defaultScanner);
-            userElementGetter.setScriptReader(false);
+            userElementGetter.setSuppressMessages(false);
         } else {
-            currentScriptScanner = scanners.peek();
-            userElementGetter.setScanner(currentScriptScanner);
+            setScanner(scanners.peek());
+            userElementGetter.setScanner(getScanner());
         }
     }
 
@@ -184,9 +184,9 @@ public class Interaction {
             scannerToClose.close();
         }
         isScript = false;
-        currentScriptScanner = null;
+        setScanner(null);
         userElementGetter.setScanner(defaultScanner);
-        userElementGetter.setScriptReader(false);
+        userElementGetter.setSuppressMessages(false);
         files.clear();
     }
 

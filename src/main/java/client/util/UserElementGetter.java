@@ -9,17 +9,10 @@ import java.util.Scanner;
 
 /**
  * Класс, реализующий опрос пользователя и создание экземпляров класса Movie на основе полученной информации.
- *
  */
 public class UserElementGetter extends InteractiveConsoleUtils {
 
     public UserElementGetter() {}
-
-    public UserElementGetter(InputStream inputStream, OutputStream outputStream) {
-        setIn(inputStream);
-        setScanner(new Scanner(inputStream));
-        setOut(outputStream);
-    }
 
 
     /**
@@ -27,16 +20,15 @@ public class UserElementGetter extends InteractiveConsoleUtils {
      * На их основе создает и возвращает новый экземпляр.
      * Обладает встроенными проверками корректности значений каждого поля.
      *
-
      * @return экземпляр Movie, созданный на основе пользовательского ввода.
      */
     public Movie movieGetter() {
-        if (getScanner()!=null) {
-            writeMessage("Пожалуйста, введите значения полей, характеризующих новый фильм.\n");
+        if (getScanner() != null) {
+            printlnMessage("Пожалуйста, введите значения полей, характеризующих новый фильм.");
             return new Movie(nameGetter(false), coordinatesGetter(), oscarsCountGetter(), heightOrPalmsCountGetter(false),
                     taglineGetter(), genreGetter(), screenwriterGetter());
         } else {
-            System.out.println("Сканнер у UserElementGetter не инициализирован!");
+            printlnMessage("Сканнер у UserElementGetter не инициализирован!");
             return null;
         }
 
@@ -45,16 +37,16 @@ public class UserElementGetter extends InteractiveConsoleUtils {
     private String nameGetter(boolean isScreenwriter) {
 
         if (isScreenwriter) {
-            writeMessage("Введите имя:\n");
+            printlnMessage("Введите имя:");
         } else {
-            writeMessage("Введите название фильма:\n");
+            printlnMessage("Введите название фильма:");
         }
         String line;
         do {
-            writeMessage(">>");
+            printMessage(">>");
             line = getScanner().nextLine().trim();
             if (line.isEmpty()) {
-                writeMessage("Строка не должна быть пустой!\n");
+                printlnMessage("Строка не должна быть пустой!");
             }
         } while (line.isEmpty());
 
@@ -62,44 +54,44 @@ public class UserElementGetter extends InteractiveConsoleUtils {
     }
 
     private Coordinates coordinatesGetter() {
-        writeMessage("Введите координаты x и y через пробел (первое число может быть дробным и не больше 326, второе целым и не больше 281):\n");
+        printlnMessage("Введите координаты x и y через пробел (первое число может быть дробным и не больше 326, второе целым и не больше 281):");
         String[] xAndY;
         boolean exceptions;
         Coordinates coordinates = null;
         do {
             exceptions = false;
-            writeMessage(">>");
+            printMessage(">>");
             xAndY = getScanner().nextLine().trim().concat(" ").split(" ", 2);
             try {
                 coordinates = new Coordinates(Float.parseFloat(xAndY[0].trim()), Integer.parseInt(xAndY[1].trim()));
-                if (coordinates.getX()>326 || coordinates.getY()>281) {
-                    writeMessage("Координаты не должны превосходить заданных значений!\n");
+                if (coordinates.getX() > 326 || coordinates.getY() > 281) {
+                    printlnMessage("Координаты не должны превосходить заданных значений!");
                     exceptions = true;
                 }
             } catch (NumberFormatException e) {
                 exceptions = true;
-                writeMessage("Некорректный ввод! Повторите попытку.\n");
+                printlnMessage("Некорректный ввод! Повторите попытку.");
             }
         } while (exceptions);
         return coordinates;
     }
 
     private int oscarsCountGetter() {
-        writeMessage("Введите количество оскаров (их число целое, больше 0 и не больше максимального интеджера):\n");
+        printlnMessage("Введите количество оскаров (их число целое, больше 0 и не больше максимального интеджера):");
         int oscars = 0;
         boolean exceptions;
         do {
             exceptions = false;
-            writeMessage(">>");
+            printMessage(">>");
             try {
                 oscars = Integer.parseInt(getScanner().nextLine().trim());
                 if (oscars < 1) {
-                    writeMessage("Число должно быть строго положительным!\n");
+                    printlnMessage("Число должно быть строго положительным!");
                     exceptions = true;
                 }
             } catch (NumberFormatException e) {
                 exceptions = true;
-                writeMessage("Некорректный ввод! Повторите попытку.\n");
+                printlnMessage("Некорректный ввод! Повторите попытку.");
             }
         } while (exceptions);
         return oscars;
@@ -107,50 +99,50 @@ public class UserElementGetter extends InteractiveConsoleUtils {
 
     private long heightOrPalmsCountGetter(boolean isScreenwriter) {
         if (isScreenwriter) {
-            writeMessage("Введите рост:\n");
+            printlnMessage("Введите рост:\n");
         } else {
-            writeMessage("Введите количество золотых пальмовых ветвей (их число целое, больше 0 и вмещается в лонг)\n");
+            printlnMessage("Введите количество золотых пальмовых ветвей (их число целое, больше 0 и вмещается в лонг)");
         }
         long palmsOrHeight = 0;
         boolean exceptions;
         do {
             exceptions = false;
-            writeMessage(">>");
+            printMessage(">>");
             try {
                 palmsOrHeight = Long.parseLong(getScanner().nextLine().trim());
                 if (palmsOrHeight < 1) {
-                    writeMessage("Число должно быть строго положительным!\n");
+                    printlnMessage("Число должно быть строго положительным!");
                     exceptions = true;
                 }
             } catch (NumberFormatException e) {
                 exceptions = true;
-                writeMessage("Некорректный ввод! Повторите попытку.\n");
+                printlnMessage("Некорректный ввод! Повторите попытку.");
             }
         } while (exceptions);
         return palmsOrHeight;
     }
 
     private String taglineGetter() {
-        writeMessage("Введите строку тегов:\n");
-        writeMessage(">>");
+        printlnMessage("Введите строку тегов:");
+        printMessage(">>");
         return getScanner().nextLine().trim();
     }
 
     private MovieGenre genreGetter() {
 
-        writeMessage("Введите жанр фильма:\n");
-        writeMessage("(Доступные жанры: " + enumContentGetter(MovieGenre.class) + ")\n");
+        printlnMessage("Введите жанр фильма:");
+        printlnMessage("(Доступные жанры: " + enumContentGetter(MovieGenre.class) + ")");
 
         MovieGenre genre = null;
         boolean exceptions;
         do {
             exceptions = false;
-            writeMessage(">>");
+            printMessage(">>");
             try {
                 genre = MovieGenre.valueOf(getScanner().nextLine().trim().toUpperCase());
             } catch (IllegalArgumentException e) {
                 exceptions = true;
-                writeMessage("Неверно введена константа! Повторите попытку\n");
+                printlnMessage("Неверно введена константа! Повторите попытку");
             }
         } while (exceptions);
 
@@ -158,7 +150,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
     }
 
     private Person screenwriterGetter() {
-        writeMessage("Сейчас вам будет предложено описать сценариста фильма.\n");
+        printlnMessage("Сейчас вам будет предложено описать сценариста фильма.");
         return new Person(nameGetter(true), heightOrPalmsCountGetter(true), eyeColorGetter(), nationalityGetter());
     }
 
@@ -172,20 +164,20 @@ public class UserElementGetter extends InteractiveConsoleUtils {
             }
             description = new StringBuilder(description.substring(0, description.length() - 2));
         } catch (Exception e) {
-            System.out.println("Шо-то пошло не так, а шо - непонятно :с");
+            printlnMessage("Шо-то пошло не так, а шо - непонятно :с");
         }
         return description.toString();
     }
 
     private Color eyeColorGetter() {
-        writeMessage("Введите цвет глаз:\n");
-        writeMessage("(Доступные цвета: " + enumContentGetter(Color.class) + ")\n");
+        printlnMessage("Введите цвет глаз:");
+        printlnMessage("(Доступные цвета: " + enumContentGetter(Color.class) + ")");
         Color color = null;
         String colorString;
         boolean exceptions;
         do {
             exceptions = false;
-            writeMessage(">>");
+            printMessage(">>");
             try {
                 colorString = getScanner().nextLine().trim().toUpperCase();
                 if (!colorString.equals("")) {
@@ -193,7 +185,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
                 }
             } catch (IllegalArgumentException e) {
                 exceptions = true;
-                writeMessage("Неверно введена константа! Повторите попытку\n");
+                printlnMessage("Неверно введена константа! Повторите попытку");
             }
         } while (exceptions);
 
@@ -201,14 +193,14 @@ public class UserElementGetter extends InteractiveConsoleUtils {
     }
 
     private Country nationalityGetter() {
-        writeMessage("Введите национальную принадлежность:\n");
-        writeMessage("(Доступные страны: " + enumContentGetter(Country.class) + ")\n");
+        printlnMessage("Введите национальную принадлежность:");
+        printlnMessage("(Доступные страны: " + enumContentGetter(Country.class) + ")");
         Country country = null;
         String nationality;
         boolean exceptions;
         do {
             exceptions = false;
-            writeMessage(">>");
+            printMessage(">>");
             try {
                 nationality = getScanner().nextLine().trim().toUpperCase();
                 if (!nationality.equals("")) {
@@ -216,7 +208,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
                 }
             } catch (IllegalArgumentException e) {
                 exceptions = true;
-                writeMessage("Неверно введена константа! Повторите попытку\n");
+                printlnMessage("Неверно введена константа! Повторите попытку");
             }
         } while (exceptions);
         return country;

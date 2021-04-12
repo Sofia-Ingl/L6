@@ -22,24 +22,24 @@ import java.util.Set;
 
 public class Client implements Runnable {
 
-    private String host;
-    private int port;
+    private final String host;
+    private final int port;
     private SocketChannel socketChannel;
     private Selector selector;
     private SocketAddress socketAddress;
-    private Interaction interaction;
+    private final Interaction interaction;
 
     public static void main(String[] args) {
 
-        Interaction interaction = new Interaction(new UserElementGetter());
+        Interaction interaction = new Interaction(System.in, System.out, new UserElementGetter());
         boolean reconnect;
         Client client = new Client("localhost", 1666, interaction);
         client.run();
-        System.out.println("Хотите переподключиться? (да/нет)");
+        interaction.printlnMessage("Хотите переподключиться? (да/нет)");
         reconnect = interaction.readLine().trim().toLowerCase().equals("да");
         while (reconnect) {
             client.run();
-            System.out.println("Хотите переподключиться? (да/нет)");
+            interaction.printlnMessage("Хотите переподключиться? (да/нет)");
             reconnect = interaction.readLine().trim().toLowerCase().equals("да");
         }
 
@@ -78,7 +78,7 @@ public class Client implements Runnable {
 
                 for (String s :
                         interaction.getCommandsAvailable().keySet()) {
-                    System.out.println(s + " интерактивна? " + interaction.getCommandsAvailable().get(s).getSecond().getFirst()
+                    interaction.printlnMessage(s + " интерактивна? " + interaction.getCommandsAvailable().get(s).getSecond().getFirst()
                             + " принимает строчной аргумент? " + interaction.getCommandsAvailable().get(s).getSecond().getSecond());
                 }
 
@@ -100,7 +100,7 @@ public class Client implements Runnable {
                             b = getResponse();
                             response = (ServerResponse) Serialization.deserialize(b);
                             code = response.getCode();
-                            System.out.println(response);
+                            interaction.printlnMessage(response.toString());
                         }
 
                         if (selectionKey.isWritable()) {
@@ -123,14 +123,14 @@ public class Client implements Runnable {
                     }
                 }
 
-                System.out.println("Клиент завершил работу приложения.");
+                interaction.printlnMessage("Клиент завершил работу приложения.");
                 System.exit(0);
 
             } catch (IOException | ClassNotFoundException e) {
-                System.out.println("Соединение разорвано");
+                interaction.printlnMessage("Соединение разорвано");
             }
         } catch (ConnectException e) {
-            System.out.println(e.getMessage());
+            interaction.printlnMessage(e.getMessage());
 
         }
     }
@@ -148,12 +148,12 @@ public class Client implements Runnable {
             byte[] a = getResponse();
             HashMap<String, Pair<String, Pair<Boolean, Boolean>>> map = (HashMap) Serialization.deserialize(a);
 
-            System.out.println("Список доступных команд инициализирован");
+            interaction.printlnMessage("Список доступных команд инициализирован");
             interaction.setCommandsAvailable(map);
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
-            System.out.println(e.getMessage());
+            interaction.printlnMessage(e.getMessage());
         }
     }
 
@@ -162,9 +162,9 @@ public class Client implements Runnable {
 
         try {
             socketChannel.write(ByteBuffer.wrap(Serialization.serialize(clientRequest)));
-            System.out.println("Запрос успешно отправлен.");
+            interaction.printlnMessage("Запрос успешно отправлен.");
         } catch (IOException e) {
-            System.out.println("Возникла ошибка при отправке пользовательского запроса на сервер");
+            interaction.printlnMessage("Возникла ошибка при отправке пользовательского запроса на сервер");
         }
     }
 
@@ -174,7 +174,7 @@ public class Client implements Runnable {
             socketAddress = new InetSocketAddress(host, port);
             socketChannel = SocketChannel.open(socketAddress);
             socketChannel.configureBlocking(false);
-            System.out.println("Соединение с сервером в неблокирующем режиме установлено");
+            interaction.printlnMessage("Соединение с сервером в неблокирующем режиме установлено");
         } catch (IOException e) {
             throw new ConnectException("Ошибка соединения с сервером");
 
@@ -184,7 +184,7 @@ public class Client implements Runnable {
     private void setSelector() {
         try {
             selector = Selector.open();
-            System.out.println("Селектор инициализирован");
+            interaction.printlnMessage("Селектор инициализирован");
         } catch (IOException e) {
             e.printStackTrace();
         }

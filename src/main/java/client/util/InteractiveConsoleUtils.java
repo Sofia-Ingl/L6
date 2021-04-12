@@ -7,7 +7,7 @@ public abstract class InteractiveConsoleUtils {
     private InputStream In = null;
     private OutputStream Out = null;
     private Scanner scanner = null;
-    private boolean isScriptReader = false;
+    private boolean suppressMessages = false;
 
     public Scanner getScanner() {
         return scanner;
@@ -21,12 +21,8 @@ public abstract class InteractiveConsoleUtils {
         In = in;
     }
 
-    public boolean isScriptReader() {
-        return isScriptReader;
-    }
-
-    public void setScriptReader(boolean scriptReader) {
-        isScriptReader = scriptReader;
+    public void setSuppressMessages(boolean suppressMessages) {
+        this.suppressMessages = suppressMessages;
     }
 
     public InputStream getIn() {
@@ -41,14 +37,19 @@ public abstract class InteractiveConsoleUtils {
         Out = out;
     }
 
-    public void writeMessage(String message) {
+    public void printlnMessage(String message) {
+        printMessage(message + "\n");
+    }
+
+    public void printMessage(String message) {
         try {
-            if (Out!=null && !isScriptReader) {
+            if (Out!=null && !suppressMessages) {
                 Out.write(message.getBytes());
             }
         } catch (IOException e) {
             System.out.println("Ошибка ввода/вывода!");
         }
     }
+
 
 }

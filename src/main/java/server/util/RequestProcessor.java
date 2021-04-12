@@ -19,9 +19,7 @@ public class RequestProcessor {
         UserCommand userCommand = commandWrapper.getAllCommandsAvailable().get(request.getCommand());
         CommandExecutionCode code = CommandExecutionCode.SUCCESS;
         Pair<Boolean, String> commandResult = userCommand.execute(request.getCommandArgument(), request.getCreatedObject());
-//        if (command.getName().equals("exit")) {
-//            //code = CommandExecutionCode.EXIT;
-//        }
+
         if (!commandResult.getFirst()) {
             code = CommandExecutionCode.ERROR;
         } else {
