@@ -1,6 +1,4 @@
-package server.commands;
-
-import shared.serializable.Pair;
+package server.commands.abstracts;
 
 public abstract class InnerServerCommand extends UserCommand {
 

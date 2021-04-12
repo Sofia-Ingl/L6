@@ -1,7 +1,4 @@
-package server.commands;
-
-import server.util.CollectionStorage;
-import server.util.CommandWrapper;
+package server.commands.abstracts;
 
 public abstract class UserCommand extends Command {
 

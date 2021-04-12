@@ -1,5 +1,6 @@
-package server.commands;
+package server.commands.user;
 
+import server.commands.abstracts.UserCommand;
 import shared.serializable.Pair;
 
 public class Exit extends UserCommand {

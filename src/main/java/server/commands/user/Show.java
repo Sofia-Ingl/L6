@@ -1,5 +1,6 @@
-package server.commands;
+package server.commands.user;
 
+import server.commands.abstracts.UserCommand;
 import shared.data.Movie;
 import shared.serializable.Pair;
 
@@ -24,7 +25,7 @@ public class Show extends UserCommand {
                 responseString = new StringBuilder("Коллекция пуста!");
             } else {
                 responseString = new StringBuilder("В настоящий момент в коллекции находятся следующие элементы\n");
-                for (Movie movie : getCollectionStorage().getSortedCollection()) {
+                for (Movie movie : getCollectionStorage().getSortedCollection().getSecond()) {
                     responseString.append(movie).append("\n");
                 }
             }

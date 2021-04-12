@@ -33,7 +33,7 @@ public class Client implements Runnable {
 
         Interaction interaction = new Interaction(new UserElementGetter());
         boolean reconnect;
-        Client client = new Client("localhost", 666, interaction);
+        Client client = new Client("localhost", 1666, interaction);
         client.run();
         System.out.println("Хотите переподключиться? (да/нет)");
         reconnect = interaction.readLine().trim().toLowerCase().equals("да");
@@ -96,16 +96,11 @@ public class Client implements Runnable {
                         selectionKey = (SelectionKey) iterator.next();
                         iterator.remove();
                         if (selectionKey.isReadable()) {
-//                            try {
                             socketChannel.register(selector, SelectionKey.OP_WRITE);
                             b = getResponse();
                             response = (ServerResponse) Serialization.deserialize(b);
                             code = response.getCode();
                             System.out.println(response);
-//                            } catch (ClassCastException e) {
-//                                System.out.println("ТВОЮ Ж ДИВИЗИЮ!");
-//                                socketChannel.register(selector, SelectionKey.OP_READ);
-//                            }
                         }
 
                         if (selectionKey.isWritable()) {
@@ -135,7 +130,7 @@ public class Client implements Runnable {
                 System.out.println("Соединение разорвано");
             }
         } catch (ConnectException e) {
-            System.out.println("Ошибка соединения");
+            System.out.println(e.getMessage());
 
         }
     }
@@ -181,7 +176,6 @@ public class Client implements Runnable {
             socketChannel.configureBlocking(false);
             System.out.println("Соединение с сервером в неблокирующем режиме установлено");
         } catch (IOException e) {
-            e.printStackTrace();
             throw new ConnectException("Ошибка соединения с сервером");
 
         }

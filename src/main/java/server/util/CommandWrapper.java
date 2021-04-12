@@ -1,10 +1,12 @@
 package server.util;
 
 
-import server.commands.UserCommand;
-import server.commands.InnerServerCommand;
+import server.commands.abstracts.Command;
+import server.commands.abstracts.UserCommand;
+import server.commands.abstracts.InnerServerCommand;
 import shared.serializable.Pair;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -16,6 +18,7 @@ public class CommandWrapper {
 
     private final HashMap<String, UserCommand> allCommandsAvailable = new HashMap<>();
     private final HashMap<String, InnerServerCommand> allInnerCommands = new HashMap<>();
+    private final ArrayList<Command> lastSixCommands = new ArrayList<>();
 
     public CommandWrapper(CollectionStorage collectionStorage, UserCommand[] listOfUserCommands, InnerServerCommand[] innerServerCommands) {
 
@@ -48,5 +51,16 @@ public class CommandWrapper {
             mapToSend.put(commandName, new Pair<>(userCommand.getUtility(), new Pair<>(userCommand.isInteractive(), userCommand.hasStringArg())));
         }
         return mapToSend;
+    }
+
+    public void updateHistory(Command command) {
+        if (lastSixCommands.size() == 6) {
+            lastSixCommands.remove(0);
+        }
+        lastSixCommands.add(command);
+    }
+
+    public ArrayList<Command> getHistory() {
+        return lastSixCommands;
     }
 }

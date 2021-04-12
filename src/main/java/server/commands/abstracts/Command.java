@@ -1,4 +1,4 @@
-package server.commands;
+package server.commands.abstracts;
 import server.util.CollectionStorage;
 import server.util.CommandWrapper;
 

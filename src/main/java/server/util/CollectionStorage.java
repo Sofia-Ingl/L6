@@ -2,6 +2,7 @@ package server.util;
 
 import shared.data.Movie;
 import shared.exceptions.MalformedCollectionContentException;
+import shared.serializable.Pair;
 
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
@@ -226,6 +227,8 @@ public class CollectionStorage {
      */
     public void clearCollection() {
         collection.clear();
+        maxMovie = null;
+        sortedCollection.clear();
         allIds.clear();
         updateTime = LocalDateTime.now();
         lastAccessTime = updateTime;
@@ -321,16 +324,15 @@ public class CollectionStorage {
 
     }
 
-    public ArrayList<Movie> getSortedCollection() {
+    public Pair<String, ArrayList<Movie>> getSortedCollection() {
         if (sortedCollection != null && sortedCollectionUpdateTime.isAfter(updateTime)) {
-            return sortedCollection;
+            return new Pair<>("Коллекция не обновлялась со времен последней сортировки", sortedCollection);
         } else {
-            //System.out.println("Коллекция обновилась со времен последней сортировки!");
             ArrayList<Movie> sortedCollection = new ArrayList<>(collection);
             sortedCollection.sort(Comparator.naturalOrder());
             this.sortedCollection = sortedCollection;
             sortedCollectionUpdateTime = LocalDateTime.now();
         }
-        return sortedCollection;
+        return new Pair<>("Коллекция обновилась со времен последней сортировки!", sortedCollection);
     }
 }

@@ -1,6 +1,6 @@
 package server.util;
 
-import server.commands.UserCommand;
+import server.commands.abstracts.UserCommand;
 import shared.serializable.ClientRequest;
 import shared.serializable.Pair;
 import shared.serializable.ServerResponse;
@@ -24,6 +24,8 @@ public class RequestProcessor {
 //        }
         if (!commandResult.getFirst()) {
             code = CommandExecutionCode.ERROR;
+        } else {
+            commandWrapper.updateHistory(userCommand);
         }
         return new ServerResponse(code, commandResult.getSecond());
     }

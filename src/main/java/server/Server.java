@@ -1,6 +1,9 @@
 package server;
 
-import server.commands.*;
+import server.commands.abstracts.InnerServerCommand;
+import server.commands.abstracts.UserCommand;
+import server.commands.inner.Save;
+import server.commands.user.*;
 import server.util.CollectionStorage;
 import server.util.CommandWrapper;
 import shared.util.CommandExecutionCode;
@@ -18,11 +21,10 @@ import java.nio.channels.IllegalBlockingModeException;
 
 public class Server implements Runnable {
 
-    private final int DEFAULT_PORT = 1376;
     private int port = -1;
     private final int timeOut;
     private ServerSocket serverSocket;
-    private RequestProcessor requestProcessor;
+    private final RequestProcessor requestProcessor;
 
 
     public static void main(String[] args) {
@@ -31,15 +33,19 @@ public class Server implements Runnable {
         CollectionStorage collectionStorage = new CollectionStorage();
         collectionStorage.loadCollection(path);
         InnerServerCommand[] innerServerCommands = {new Save()};
-        UserCommand[] userCommands = {new Help(), new Add(), new Show(), new ExecuteScript(), new GoldenPalmsFilter(), new Exit()};
+        UserCommand[] userCommands = {new Help(), new History(), new Clear(), new Add(), new Show(), new ExecuteScript(),
+                new GoldenPalmsFilter(), new Info(), new AddIfMax(), new PrintAscending(), new RemoveAllByScreenwriter(),
+                new RemoveById(), new RemoveGreater(), new Update(), new Exit()};
 
-        Server server = new Server(666, 20000, new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
+        Server server = new Server(1666, 10000, new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
         server.run();
     }
 
 
     Server(int port, int timeOut, RequestProcessor requestProcessor) {
-        this.port = port;
+        if (port > 1024) {
+            this.port = port;
+        }
         this.timeOut = timeOut;
         this.requestProcessor = requestProcessor;
     }
@@ -54,15 +60,12 @@ public class Server implements Runnable {
 
         createSocketFactory();
         boolean noServerExitCode = true;
-        /*
-        True пока нет EXIT (SERVER) в присланном запросе
-         */
+
         while (noServerExitCode) {
 
             try (Socket socket = establishClientConnection()) {
 
-               socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
-
+                socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
 
                 noServerExitCode = handleRequests(socket);
 
@@ -89,7 +92,7 @@ public class Server implements Runnable {
 
     private void createSocketFactory() {
         if (port == -1) {
-            port = DEFAULT_PORT;
+            port = 1376;
         }
         try {
             serverSocket = new ServerSocket(port);
@@ -129,6 +132,7 @@ public class Server implements Runnable {
                 serverResponse = requestProcessor.processRequest(clientRequest);
                 if (clientRequest.getCommand().equals("exit")) {
                     System.out.println(serverResponse.getResponseToPrint());
+                    requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 } else {
                     socket.getOutputStream().write(Serialization.serialize(serverResponse));
                 }

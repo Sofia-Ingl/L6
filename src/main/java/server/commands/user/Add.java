@@ -1,5 +1,6 @@
-package server.commands;
+package server.commands.user;
 
+import server.commands.abstracts.UserCommand;
 import shared.data.Movie;
 import shared.serializable.Pair;
 

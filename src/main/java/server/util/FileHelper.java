@@ -33,17 +33,13 @@ public class FileHelper {
     public static LinkedHashSet<Movie> jsonFileInputLoader(String fullPath) {
         File file = new File(fullPath);
         Path p = Paths.get(fullPath);
-        if (file.getAbsolutePath().length() > 3 && file.getAbsolutePath().trim().startsWith("/dev")) {
-            System.out.println("Пошалить вздумал?) Не в мою смену, братишка!");
-            return null;
-        }
         try {
             if (p.toRealPath().toString().length() > 3 && p.toRealPath().toString().trim().startsWith("/dev")) {
                 System.out.println("Пошалить вздумал?) Не в мою смену, братишка!");
                 return null;
             }
-        } catch (IOException e) {
-            System.out.println("Ой все!");
+        } catch (IOException | SecurityException e) {
+            System.out.println("Ой все! Не знаю такого файла");
             System.exit(-1);
         }
         try (FileInputStream inputStream = new FileInputStream(file);
@@ -105,14 +101,14 @@ public class FileHelper {
     }
 
     private static String fromObjectsToJson(LinkedHashSet<Movie> collection) {
-        String jsonString = "[";
+        StringBuilder jsonString = new StringBuilder("[");
         JSONObject jo;
         for (Movie movie : collection) {
             String movieString = gson.toJson(movie);
             jo = new JSONObject(movieString);
             jo.put("creationDate", movie.getCreationDate().toString());
             movieString = jo.toString();
-            jsonString = jsonString + movieString + ", ";
+            jsonString.append(movieString).append(", ");
         }
         return jsonString.substring(0, jsonString.length() - 2) + "]";
     }
