@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Класс-обертка для коллекции, предназначенный для хранения коллекции и вспомогательной информации.
@@ -100,32 +101,35 @@ public class CollectionStorage {
      * @param id айди, по которому следует удалить элемент.
      * @return произошло удаление или нет.
      */
-    public boolean deleteElementForId(int id) {
+    public boolean streamDeleteElementForId(int id) {
 
         lastAccessTime = LocalDateTime.now();
         if (allIds.contains(id)) {
             boolean ifWasMax = false;
             allIds.remove((Integer) id);
             if (maxMovie.getId() == id) {
-                maxMovie = null;
                 ifWasMax = true;
+                maxMovie = null;
             }
-            Iterator<Movie> iterator = collection.iterator();
-            while (iterator.hasNext()) {
-                Movie currentMovie = iterator.next();
-                if (currentMovie.getId() == id) {
-                    iterator.remove();
-                    updateTime = LocalDateTime.now();
-                } else {
-                    if (ifWasMax && (maxMovie == null || currentMovie.compareTo(maxMovie) > 0)) {
-                        maxMovie = currentMovie;
-                    }
-                }
+            LinkedHashSet<Movie> newCollection = collection
+                    .stream()
+                    .filter(movie -> movie.getId() != id)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            if (ifWasMax) {
+                setMaxMovie(newCollection);
             }
+            collection = newCollection;
+            updateTime = LocalDateTime.now();
             return true;
         }
         return false;
     }
+
+
+    private void setMaxMovie(LinkedHashSet<Movie> set) {
+        set.stream().max(Comparator.naturalOrder()).ifPresent(movie -> maxMovie = movie);
+    }
+
 
     /**
      * Метод, возвращающий элемент по айди или null, если такой элемент не найден.
@@ -133,13 +137,15 @@ public class CollectionStorage {
      * @param id айди, элемент с которым надо вернуть.
      * @return Movie с заданным айди или null (если фильм не найден).
      */
-    public Movie getById(int id) {
+    public Movie streamGetById(int id) {
         lastAccessTime = LocalDateTime.now();
+        updateTime = lastAccessTime;
         if (allIds.contains(id)) {
-            for (Movie movie : collection) {
-                if (movie.getId() == id) {
-                    return movie;
-                }
+            Optional<Movie> movie = collection.stream()
+                    .filter(m -> m.getId() == id)
+                    .findFirst();
+            if (movie.isPresent()) {
+                return movie.get();
             }
         }
         return null;
@@ -180,30 +186,31 @@ public class CollectionStorage {
      * @param screenwriterName сценарист, по которому следует удалить элемент(ы).
      * @return произошло удаление или нет.
      */
-    public boolean removeByScreenwriter(String screenwriterName) {
-        boolean isDeleted = false;
+    public boolean streamRemoveByScreenwriter(String screenwriterName) {
+        final String screenwriter = screenwriterName.trim().toLowerCase();
         boolean maxDeleted = false;
-        if (screenwriterName.trim().toLowerCase().matches(maxMovie.getScreenwriter().getName().trim().toLowerCase())) {
+        boolean isDeleted = false;
+        if (screenwriter.matches(maxMovie.getScreenwriter().getName().trim().toLowerCase())) {
             maxDeleted = true;
             maxMovie = null;
         }
-        Iterator<Movie> iterator = collection.iterator();
-        while (iterator.hasNext()) {
-            Movie currentMovie = iterator.next();
-            if (screenwriterName.trim().toLowerCase().matches(currentMovie.getScreenwriter().getName().trim().toLowerCase())) {
-                allIds.remove((Integer) currentMovie.getId());
-                iterator.remove();
-                isDeleted = true;
-                updateTime = LocalDateTime.now();
-            } else {
-                if (maxDeleted && (maxMovie == null || currentMovie.compareTo(maxMovie) > 0)) {
-                    maxMovie = currentMovie;
-                }
-            }
+        allIds.clear();
+        LinkedHashSet<Movie> newCollection = collection.stream()
+                .filter(movie -> !movie.getScreenwriter().getName().trim().toLowerCase().equals(screenwriter))
+                .peek(movie -> allIds.add(movie.getId()))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (newCollection.size() < collection.size()) {
+            isDeleted = true;
+            updateTime = LocalDateTime.now();
+        }
+        if (maxDeleted) {
+            setMaxMovie(newCollection);
         }
         lastAccessTime = LocalDateTime.now();
+        collection = newCollection;
         return isDeleted;
     }
+
 
     public Movie getMaxMovie() {
         return maxMovie;
@@ -243,56 +250,22 @@ public class CollectionStorage {
         return new Type[]{collectionType, contentType};
     }
 
-    /**
-     * Метод, печатающий в System.out элменты, значение поля goldenPalmsCount у которых больше заданного.
-     *
-     * @param goldenPalms число золотых пальмовых ветвей, с которым надо сравнить.
-     */
-    public void printGreaterThanGoldenPalms(long goldenPalms) {
-        lastAccessTime = LocalDateTime.now();
-        for (Movie movie : collection) {
-            if (movie.getGoldenPalmCount() > goldenPalms) {
-                System.out.println(movie);
-            }
-        }
-    }
 
-    public String returnGreaterThanGoldenPalms(long goldenPalms) {
+    public String streamReturnGreaterThanGoldenPalms(long goldenPalms) {
+
         lastAccessTime = LocalDateTime.now();
         StringBuilder builder = new StringBuilder();
-        builder.append("Элементы, значение поля goldenPalmsCount у которых больше заданного\n");
-        boolean isAny = false;
-        for (Movie movie : collection) {
-            if (movie.getGoldenPalmCount() > goldenPalms) {
-                //System.out.println(movie);
-                isAny = true;
-                builder.append(movie).append("\n");
-            }
+        String heading = "Элементы, значение поля goldenPalmsCount у которых больше заданного\n";
+        builder.append(heading);
+        collection.stream()
+                .filter(movie -> movie.getGoldenPalmCount() > goldenPalms)
+                .forEach(movie -> builder.append(movie).append("\n"));
+        if (builder.toString().equals(heading)) {
+            return "В коллекции не было элементов, удовлетворяющих условию";
         }
-        if (isAny) {
-            return builder.toString();
-        }
-        return "В коллекции не было элементов, удовлетворяющих условию";
+        return builder.toString();
     }
 
-    /**
-     * Метод, выводящий в System.out элементы коллекции по возрастанию.
-     */
-    public void printAscending() {
-        if (sortedCollection != null && sortedCollectionUpdateTime.isAfter(updateTime)) {
-            System.out.println("Коллекция не обновлялась со времен последней сортировки");
-        } else {
-            System.out.println("Коллекция обновилась со времен последней сортировки!");
-            ArrayList<Movie> sortedCollection = new ArrayList<>(collection);
-            sortedCollection.sort(Comparator.naturalOrder());
-            this.sortedCollection = sortedCollection;
-            sortedCollectionUpdateTime = LocalDateTime.now();
-        }
-
-        for (Movie movie : this.sortedCollection) {
-            System.out.println(movie);
-        }
-    }
 
     /**
      * Метод, удаляющий элементы большие, чем заданный.
@@ -300,28 +273,20 @@ public class CollectionStorage {
      * @param movie фильм, с которым будет производиться сравнение.
      * @return произошло хоть одно удаление или нет.
      */
-    public boolean removeGreater(Movie movie) {
-        Iterator<Movie> iterator = collection.iterator();
-        Movie currentMovie;
-        if (maxMovie.compareTo(movie) < 0) {
-            return false;
+    public boolean streamRemoveGreater(Movie movie) {
+        if (maxMovie.compareTo(movie) > 0) {
+            allIds.clear();
+            LinkedHashSet<Movie> newCollection = collection.stream()
+                    .filter(m -> m.compareTo(movie) <= 0)
+                    .peek(m -> allIds.add(m.getId()))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            setMaxMovie(newCollection);
+            collection = newCollection;
+            updateTime = LocalDateTime.now();
+            lastAccessTime = updateTime;
+            return true;
         }
-        maxMovie = null;
-        while (iterator.hasNext()) {
-            currentMovie = iterator.next();
-            if (movie.compareTo(currentMovie) < 0) {
-                allIds.remove((Integer) currentMovie.getId());
-                iterator.remove();
-                updateTime = LocalDateTime.now();
-            } else {
-                if (maxMovie == null || currentMovie.compareTo(maxMovie) > 0) {
-                    maxMovie = currentMovie;
-                }
-            }
-        }
-        lastAccessTime = LocalDateTime.now();
-        return true;
-
+        return false;
     }
 
     public Pair<String, ArrayList<Movie>> getSortedCollection() {
@@ -329,6 +294,7 @@ public class CollectionStorage {
             return new Pair<>("Коллекция не обновлялась со времен последней сортировки", sortedCollection);
         } else {
             ArrayList<Movie> sortedCollection = new ArrayList<>(collection);
+            lastAccessTime = LocalDateTime.now();
             sortedCollection.sort(Comparator.naturalOrder());
             this.sortedCollection = sortedCollection;
             sortedCollectionUpdateTime = LocalDateTime.now();

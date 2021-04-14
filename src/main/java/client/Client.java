@@ -34,14 +34,13 @@ public class Client implements Runnable {
         Interaction interaction = new Interaction(System.in, System.out, new UserElementGetter());
         boolean reconnect;
         Client client = new Client("localhost", 1666, interaction);
-        client.run();
-        interaction.printlnMessage("Хотите переподключиться? (да/нет)");
-        reconnect = interaction.readLine().trim().toLowerCase().equals("да");
-        while (reconnect) {
+        do {
             client.run();
-            interaction.printlnMessage("Хотите переподключиться? (да/нет)");
-            reconnect = interaction.readLine().trim().toLowerCase().equals("да");
-        }
+            interaction.printlnMessage("Хотите переподключиться? (да|yes|y)");
+            interaction.printMessage(">");
+            String answer = interaction.readLine().trim().toLowerCase();
+            reconnect = answer.equals("да") || answer.equals("yes") || answer.equals("y");
+        } while (reconnect);
 
 
     }

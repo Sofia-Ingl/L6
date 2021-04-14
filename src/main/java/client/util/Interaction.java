@@ -58,7 +58,7 @@ public class Interaction extends InteractiveConsoleUtils {
                 commandArg = commandWithArg[1].trim();
                 validation = commandIsValid(command, commandArg);
                 if (!validation) {
-                    printlnMessage("Команды с таким именем нет!");
+                    printlnMessage("Команды с таким именем нет или вы используете команду неверно! Вызовите help для справки");
                 }
             }
 

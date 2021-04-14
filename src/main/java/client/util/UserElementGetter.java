@@ -3,9 +3,6 @@ package client.util;
 
 import shared.data.*;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Scanner;
 
 /**
  * Класс, реализующий опрос пользователя и создание экземпляров класса Movie на основе полученной информации.
@@ -99,7 +96,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
 
     private long heightOrPalmsCountGetter(boolean isScreenwriter) {
         if (isScreenwriter) {
-            printlnMessage("Введите рост:\n");
+            printlnMessage("Введите рост:");
         } else {
             printlnMessage("Введите количество золотых пальмовых ветвей (их число целое, больше 0 и вмещается в лонг)");
         }

@@ -16,7 +16,8 @@ public class RemoveAllByScreenwriter extends UserCommand {
     public Pair<Boolean, String> execute(String arg, Object obj) {
 
         String response;
-        boolean isDeleted = getCollectionStorage().removeByScreenwriter(arg.trim());
+        //boolean isDeleted = getCollectionStorage().removeByScreenwriter(arg.trim());
+        boolean isDeleted = getCollectionStorage().streamRemoveByScreenwriter(arg.trim());
         if (!isDeleted) {
             response = "В коллекции не было фильмов сценариста с подобным именем.";
         } else {

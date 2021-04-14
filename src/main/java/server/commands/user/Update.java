@@ -22,7 +22,8 @@ public class Update extends UserCommand {
                 throw new IllegalArgumentException("Неправильный тип аргумента к команде!");
             } else {
                 int id = Integer.parseInt(arg.trim());
-                Movie m1 = getCollectionStorage().getById(id);
+                //Movie m1 = getCollectionStorage().getById(id);
+                Movie m1 = getCollectionStorage().streamGetById(id);
                 if (m1 != null) {
                     Movie m2 = (Movie) obj;
                     m1.setName(m2.getName());

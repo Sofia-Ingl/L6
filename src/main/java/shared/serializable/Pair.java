@@ -1,9 +1,6 @@
 package shared.serializable;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class Pair<K, V> implements Serializable {
