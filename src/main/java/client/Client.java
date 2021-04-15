@@ -72,7 +72,20 @@ public class Client implements Runnable {
             try {
 
                 socketChannel.register(selector, SelectionKey.OP_READ);
-                selector.select();
+//                selector.select();
+
+                selector.select(5000);
+                boolean reconnect;
+                while (selector.selectedKeys().isEmpty()) {
+                    interaction.printlnMessage("Сервер занят. Хотите продолжить ожидание? (yes)");
+                    interaction.printMessage(">");
+                    reconnect = interaction.readLine().trim().toLowerCase().equals("yes");
+                    if (!reconnect) {
+                        System.exit(0);
+                    }
+                    selector.select(5000);
+                }
+
                 selector.selectedKeys().clear();
                 setCommandsAvailable();
 
@@ -143,7 +156,7 @@ public class Client implements Runnable {
         return byteBuffer.array();
     }
 
-    private void setCommandsAvailable() {
+    private void setCommandsAvailable() throws ConnectException {
         try {
             byte[] a = getResponse();
             HashMap<String, Pair<String, Pair<Boolean, Boolean>>> map = (HashMap) Serialization.deserialize(a);
@@ -152,8 +165,7 @@ public class Client implements Runnable {
             interaction.setCommandsAvailable(map);
 
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            interaction.printlnMessage(e.getMessage());
+            throw new ConnectException("Возникла непредвиденная ошибка соединения при инициализации списка доступных команд");
         }
     }
 

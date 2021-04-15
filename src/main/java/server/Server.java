@@ -21,6 +21,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.channels.IllegalBlockingModeException;
+import java.util.concurrent.TimeoutException;
 
 public class Server implements Runnable {
 
@@ -70,11 +71,13 @@ public class Server implements Runnable {
 
                 noServerExitCode = handleRequests(socket);
 
-            } catch (IOException e) {
-
+            }
+            catch (ConnectException e) {
                 logger.info(e.getMessage());
                 requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 noServerExitCode = false;
+            } catch (IOException e) {
+                logger.info("Непредвиденная ошибка соединения (клиент, бывший в очереди, отключился)");
             }
         }
 
@@ -131,6 +134,7 @@ public class Server implements Runnable {
                 serverResponse = requestProcessor.processRequest(clientRequest);
                 if (clientRequest.getCommand().equals("exit")) {
                     logger.info(serverResponse.getResponseToPrint());
+                    // А надо ли сохранять, когда клиент отключается?
                     requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 } else {
                     socket.getOutputStream().write(Serialization.serialize(serverResponse));
@@ -158,7 +162,7 @@ public class Server implements Runnable {
                 return new Pair<>(path, port);
 
             } else {
-                throw new IllegalArgumentException("Вы забыли указать путь к коллекции и/или порт, который будет прослушиваться сервером");
+                throw new IllegalArgumentException("Не указан путь к коллекции и/или порт, который будет прослушиваться сервером");
             }
         } catch (NumberFormatException e) {
             logger.error("Порт должен быть целым числом");

@@ -6,7 +6,7 @@ import shared.serializable.Pair;
 public class Exit extends UserCommand {
 
     public Exit() {
-        super("exit", "завершить программу (без сохранения в файл)", false, false);
+        super("exit", "завершить программу", false, false);
     }
 
     @Override
