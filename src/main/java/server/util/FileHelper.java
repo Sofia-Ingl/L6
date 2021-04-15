@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 
+import server.Server;
 import shared.data.Movie;
 
 import org.json.JSONArray;
@@ -37,12 +38,13 @@ public class FileHelper {
         Path p = Paths.get(fullPath);
         try {
             if (p.toRealPath().toString().length() > 3 && p.toRealPath().toString().trim().startsWith("/dev")) {
-                System.out.println("Пошалить вздумал?) Не в мою смену, братишка!");
+                Server.logger.error("Недопустимый путь к файлу!");
                 return null;
             }
         } catch (IOException | SecurityException e) {
-            System.out.println("Ой все! Не знаю такого файла");
-            System.exit(-1);
+            Server.logger.error("Файл не найден или не хватает прав доступа");
+            return null;
+            //System.exit(1);
         }
         try (FileInputStream inputStream = new FileInputStream(file);
              BufferedInputStream bufferedIS = new BufferedInputStream(inputStream);
@@ -52,16 +54,16 @@ public class FileHelper {
                 return fromJsonToObjects(scanner.nextLine().trim());
             }
         } catch (FileNotFoundException e) {
-            System.out.println("Файл не найден!");
+            Server.logger.error("Файл не найден!");
         } catch (IOException e) {
-            System.out.println("Ошибка ввода-вывода.");
+            Server.logger.error("Ошибка ввода-вывода.");
         } catch (IllegalStateException e) {
-            System.out.println("Сканнер закрылся?");
-            System.exit(1);
+            Server.logger.error("Сканнер закрылся вместе с потоком?");
+            //System.exit(1);
         } catch (SecurityException e) {
-            System.out.println("Ограниченные права доступа не позволяют осуществить чтение из файла.");
+            Server.logger.error("Ограниченные права доступа не позволяют осуществить чтение из файла.");
         } catch (JSONException | JsonParseException e) {
-            System.out.println("Ошибка парсинга json.");
+            Server.logger.error("Ошибка парсинга json.");
         }
         return null;
     }
@@ -79,11 +81,11 @@ public class FileHelper {
             printWriter.write(fromObjectsToJson(collection));
             return true;
         } catch (FileNotFoundException e) {
-            System.out.println("Файл не найден!");
+            Server.logger.error("Файл не найден!");
         } catch (SecurityException e) {
-            System.out.println("Ограниченные права доступа не позволяют осуществить запись в файл.");
+            Server.logger.error("Ограниченные права доступа не позволяют осуществить запись в файл.");
         } catch (JSONException | JsonParseException e) {
-            System.out.println("Ошибка парсинга json.");
+            Server.logger.error("Ошибка парсинга json.");
         }
         return false;
     }

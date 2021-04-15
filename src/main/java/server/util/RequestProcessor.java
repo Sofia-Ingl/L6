@@ -1,5 +1,6 @@
 package server.util;
 
+import server.Server;
 import server.commands.abstracts.UserCommand;
 import shared.serializable.ClientRequest;
 import shared.serializable.Pair;
@@ -16,6 +17,7 @@ public class RequestProcessor {
 
     public ServerResponse processRequest(ClientRequest request) {
 
+        Server.logger.info("Исполняется команда {}", request.getCommand());
         UserCommand userCommand = commandWrapper.getAllCommandsAvailable().get(request.getCommand());
         CommandExecutionCode code = CommandExecutionCode.SUCCESS;
         Pair<Boolean, String> commandResult = userCommand.execute(request.getCommandArgument(), request.getCreatedObject());

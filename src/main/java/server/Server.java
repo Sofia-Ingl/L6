@@ -1,5 +1,7 @@
 package server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.commands.abstracts.InnerServerCommand;
 import server.commands.abstracts.UserCommand;
 import server.commands.inner.Save;
@@ -21,6 +23,8 @@ import java.net.SocketTimeoutException;
 import java.nio.channels.IllegalBlockingModeException;
 
 public class Server implements Runnable {
+
+    public final static Logger logger = LoggerFactory.getLogger(Server.class);
 
     private int port = -1;
     private final int timeOut;
@@ -54,6 +58,7 @@ public class Server implements Runnable {
     @Override
     public void run() {
 
+        logger.info("Сервер запускается");
         createSocketFactory();
         boolean noServerExitCode = true;
 
@@ -67,8 +72,7 @@ public class Server implements Runnable {
 
             } catch (IOException e) {
 
-                // ПРИ ОШИБКЕ ИЛИ ПРЕВЫШЕННОМ ВРЕМЕНИ ОЖИДАНИЯ СЕРВЕР ЗАВЕРШАЕТ РАБОТУ
-                System.out.println(e.getMessage());
+                logger.info(e.getMessage());
                 requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 noServerExitCode = false;
             }
@@ -77,9 +81,9 @@ public class Server implements Runnable {
         if (serverSocket != null) {
             try {
                 serverSocket.close();
-                System.out.println("Сервер прекращает работу");
+                logger.info("Сервер прекращает работу");
             } catch (IOException e) {
-                System.out.println("Сервер прекращает работу с ошибкой");
+                logger.warn("Сервер прекращает работу с ошибкой");
             }
         }
 
@@ -92,7 +96,7 @@ public class Server implements Runnable {
         }
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("Фабрика сокетов создана");
+            logger.info("Фабрика сокетов создана");
             serverSocket.setSoTimeout(timeOut);
         } catch (IOException | IllegalArgumentException e) {
             e.printStackTrace();
@@ -101,9 +105,9 @@ public class Server implements Runnable {
 
     private Socket establishClientConnection() throws ConnectException {
         try {
-            System.out.println("Прослушивается порт " + port);
+            logger.info("Прослушивается порт {}", port);
             Socket clientSocket = serverSocket.accept();
-            System.out.println("Соединение установлено");
+            logger.info("Соединение с клиентом, находящимся по адресу {}, установлено", clientSocket.getRemoteSocketAddress().toString());
             return clientSocket;
         } catch (SocketTimeoutException e) {
             throw new ConnectException("Превышено время ожидания клиентского запроса.");
@@ -126,7 +130,7 @@ public class Server implements Runnable {
                 clientRequest = (ClientRequest) Serialization.deserialize(b);
                 serverResponse = requestProcessor.processRequest(clientRequest);
                 if (clientRequest.getCommand().equals("exit")) {
-                    System.out.println(serverResponse.getResponseToPrint());
+                    logger.info(serverResponse.getResponseToPrint());
                     requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 } else {
                     socket.getOutputStream().write(Serialization.serialize(serverResponse));
@@ -139,7 +143,7 @@ public class Server implements Runnable {
 
         } catch (IOException | ClassNotFoundException e) {
 
-            System.out.println("Соединение разорвано");
+            logger.warn("Соединение разорвано");
         }
 
         return true;
@@ -157,10 +161,10 @@ public class Server implements Runnable {
                 throw new IllegalArgumentException("Вы забыли указать путь к коллекции и/или порт, который будет прослушиваться сервером");
             }
         } catch (NumberFormatException e) {
-            System.out.println("Порт должен быть целым числом");
+            logger.error("Порт должен быть целым числом");
             System.exit(1);
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            logger.error(e.getMessage());
             System.exit(1);
         }
         return null;

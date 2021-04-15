@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="file" class="ch.qos.logback.core.FileAppender">
+        <file>logs.log</file>
+        <append>false</append>
+        <encoder>
+            <pattern>%date %level [%file:%line] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="file" />
+        <appender-ref ref="stdout" />
+    </root>
+</configuration>

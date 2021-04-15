@@ -1,5 +1,6 @@
 package server.util;
 
+import server.Server;
 import shared.data.Movie;
 import shared.exceptions.MalformedCollectionContentException;
 import shared.serializable.Pair;
@@ -74,13 +75,15 @@ public class CollectionStorage {
             initTime = LocalDateTime.now();
             updateTime = initTime;
             lastAccessTime = updateTime;
-            System.out.println("Коллекция успешно загружена!");
+            Server.logger.info("Коллекция успешно загружена!");
 
         } catch (NullPointerException e) {
-            System.out.println("Коллекция не была успешно загружена...");
+            Server.logger.error("Коллекция не была успешно загружена...");
+            Server.logger.error("Сервер завершает работу");
             System.exit(1);
         } catch (MalformedCollectionContentException e) {
-            System.out.println(e.getMessage());
+            Server.logger.error(e.getMessage());
+            Server.logger.error("Сервер завершает работу");
             System.exit(1);
         }
     }
