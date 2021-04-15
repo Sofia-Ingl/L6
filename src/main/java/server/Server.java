@@ -6,6 +6,7 @@ import server.commands.inner.Save;
 import server.commands.user.*;
 import server.util.CollectionStorage;
 import server.util.CommandWrapper;
+import shared.serializable.Pair;
 import shared.util.CommandExecutionCode;
 import server.util.RequestProcessor;
 import shared.serializable.ClientRequest;
@@ -29,15 +30,15 @@ public class Server implements Runnable {
 
     public static void main(String[] args) {
 
-        String path = (args.length == 0) ? "" : args[0];
+        Pair<String, Integer> pathAndPort = getPathAndPort(args);
         CollectionStorage collectionStorage = new CollectionStorage();
-        collectionStorage.loadCollection(path);
+        collectionStorage.loadCollection(pathAndPort.getFirst());
         InnerServerCommand[] innerServerCommands = {new Save()};
         UserCommand[] userCommands = {new Help(), new History(), new Clear(), new Add(), new Show(), new ExecuteScript(),
                 new GoldenPalmsFilter(), new Info(), new AddIfMax(), new PrintAscending(), new RemoveAllByScreenwriter(),
                 new RemoveById(), new RemoveGreater(), new Update(), new Exit()};
 
-        Server server = new Server(1666, 10000, new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
+        Server server = new Server(pathAndPort.getSecond(), 10000, new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
         server.run();
     }
 
@@ -46,11 +47,6 @@ public class Server implements Runnable {
         if (port > 1024) {
             this.port = port;
         }
-        this.timeOut = timeOut;
-        this.requestProcessor = requestProcessor;
-    }
-
-    Server(int timeOut, RequestProcessor requestProcessor) {
         this.timeOut = timeOut;
         this.requestProcessor = requestProcessor;
     }
@@ -112,7 +108,6 @@ public class Server implements Runnable {
         } catch (SocketTimeoutException e) {
             throw new ConnectException("Превышено время ожидания клиентского запроса.");
         } catch (IOException | IllegalBlockingModeException | IllegalArgumentException e) {
-            //e.printStackTrace();
             throw new ConnectException("Ошибка соединения.");
         }
     }
@@ -151,22 +146,25 @@ public class Server implements Runnable {
     }
 
 
+    private static Pair<String, Integer> getPathAndPort(String[] args) {
+        try {
+            if (args.length > 1) {
+                String path = args[0];
+                int port = Integer.parseInt(args[1]);
+                return new Pair<>(path, port);
+
+            } else {
+                throw new IllegalArgumentException("Вы забыли указать путь к коллекции и/или порт, который будет прослушиваться сервером");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Порт должен быть целым числом");
+            System.exit(1);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        }
+        return null;
+    }
+
+
 }
-
-/*
-Обязанности серверного приложения:
-
-Работа с файлом, хранящим коллекцию.
-Управление коллекцией объектов.
-Назначение автоматически генерируемых полей объектов в коллекции.
-Ожидание подключений и запросов от клиента.
-Обработка полученных запросов (команд).
-Сохранение коллекции в файл при завершении работы приложения.
-Сохранение коллекции в файл при исполнении специальной команды, доступной только серверу (клиент такую команду отправить не может).
-Серверное приложение должно состоять из следующих модулей (реализованных в виде одного или нескольких классов):
-Модуль приёма подключений.
-Модуль чтения запроса.
-Модуль обработки полученных команд.
-Модуль отправки ответов клиенту.
-Сервер должен работать в однопоточном режиме.
- */

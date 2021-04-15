@@ -31,9 +31,10 @@ public class Client implements Runnable {
 
     public static void main(String[] args) {
 
+        Pair<String, Integer> hostAndPort = getHostAndPort(args);
         Interaction interaction = new Interaction(System.in, System.out, new UserElementGetter());
         boolean reconnect;
-        Client client = new Client("localhost", 1666, interaction);
+        Client client = new Client(hostAndPort.getFirst(), hostAndPort.getSecond(), interaction);
         do {
             client.run();
             interaction.printlnMessage("Хотите переподключиться? (да|yes|y)");
@@ -187,6 +188,29 @@ public class Client implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static Pair<String, Integer> getHostAndPort(String[] args) {
+        try {
+            if (args.length > 1) {
+                String host = args[0];
+                int port = Integer.parseInt(args[1]);
+                if (port <= 1024) {
+                    throw new IllegalArgumentException("Выбранный порт должен превышать 1024");
+                }
+                return new Pair<>(host, port);
+
+            } else {
+                throw new IllegalArgumentException("Вы забыли указать хост и/или порт сервера, к которому собираетесь подключиться");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Порт должен быть целым числом");
+            System.exit(1);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        }
+        return null;
     }
 
 
