@@ -27,6 +27,10 @@ public class RequestProcessor {
         } else {
             commandWrapper.updateHistory(userCommand);
         }
+
+        if (request.getCommand().equals("exit")) {
+            code = CommandExecutionCode.EXIT;
+        }
         return new ServerResponse(code, commandResult.getSecond());
     }
 

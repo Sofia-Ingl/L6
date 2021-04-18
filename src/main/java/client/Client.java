@@ -72,7 +72,6 @@ public class Client implements Runnable {
             try {
 
                 socketChannel.register(selector, SelectionKey.OP_READ);
-//                selector.select();
 
                 selector.select(5000);
                 boolean reconnect;

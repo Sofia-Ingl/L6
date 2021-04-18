@@ -21,7 +21,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.channels.IllegalBlockingModeException;
-import java.util.concurrent.TimeoutException;
 
 public class Server implements Runnable {
 
@@ -69,7 +68,7 @@ public class Server implements Runnable {
 
                 socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
 
-                noServerExitCode = handleRequests(socket);
+                handleRequests(socket);
 
             }
             catch (ConnectException e) {
@@ -77,7 +76,7 @@ public class Server implements Runnable {
                 requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 noServerExitCode = false;
             } catch (IOException e) {
-                logger.info("Непредвиденная ошибка соединения (клиент, бывший в очереди, отключился)");
+                logger.warn("Ошибка соединения (клиент отключился, не дождавшись своей очереди)");
             }
         }
 
@@ -102,7 +101,8 @@ public class Server implements Runnable {
             logger.info("Фабрика сокетов создана");
             serverSocket.setSoTimeout(timeOut);
         } catch (IOException | IllegalArgumentException e) {
-            e.printStackTrace();
+            logger.warn("Ошибка при инициализации фабрики сокетов");
+            System.exit(1);
         }
     }
 
@@ -113,13 +113,13 @@ public class Server implements Runnable {
             logger.info("Соединение с клиентом, находящимся по адресу {}, установлено", clientSocket.getRemoteSocketAddress().toString());
             return clientSocket;
         } catch (SocketTimeoutException e) {
-            throw new ConnectException("Превышено время ожидания клиентского запроса.");
+            throw new ConnectException("Превышено время ожидания клиентского запроса");
         } catch (IOException | IllegalBlockingModeException | IllegalArgumentException e) {
             throw new ConnectException("Ошибка соединения.");
         }
     }
 
-    private boolean handleRequests(Socket socket) {
+    private void handleRequests(Socket socket) {
 
         ClientRequest clientRequest;
         ServerResponse serverResponse;
@@ -134,7 +134,6 @@ public class Server implements Runnable {
                 serverResponse = requestProcessor.processRequest(clientRequest);
                 if (clientRequest.getCommand().equals("exit")) {
                     logger.info(serverResponse.getResponseToPrint());
-                    // А надо ли сохранять, когда клиент отключается?
                     requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 } else {
                     socket.getOutputStream().write(Serialization.serialize(serverResponse));
@@ -143,14 +142,11 @@ public class Server implements Runnable {
 
             } while (serverResponse.getCode() != CommandExecutionCode.EXIT);
 
-            return false;
-
         } catch (IOException | ClassNotFoundException e) {
 
             logger.warn("Соединение разорвано");
         }
 
-        return true;
     }
 
 
