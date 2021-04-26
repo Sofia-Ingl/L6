@@ -26,7 +26,6 @@ public class Client implements Runnable {
     private final int port;
     private SocketChannel socketChannel;
     private Selector selector;
-    private SocketAddress socketAddress;
     private final Interaction interaction;
 
     public static void main(String[] args) {
@@ -42,7 +41,6 @@ public class Client implements Runnable {
             String answer = interaction.readLine().trim().toLowerCase();
             reconnect = answer.equals("да") || answer.equals("yes") || answer.equals("y");
         } while (reconnect);
-
 
     }
 
@@ -182,10 +180,12 @@ public class Client implements Runnable {
 
     private void setConnectionWithServer() throws ConnectException {
         try {
-            socketAddress = new InetSocketAddress(host, port);
+            SocketAddress socketAddress = new InetSocketAddress(host, port);
+            interaction.printlnMessage("Подождите, идет подключение...");
             socketChannel = SocketChannel.open(socketAddress);
             socketChannel.configureBlocking(false);
             interaction.printlnMessage("Соединение с сервером в неблокирующем режиме установлено");
+
         } catch (IOException e) {
             throw new ConnectException("Ошибка соединения с сервером");
 
@@ -216,12 +216,18 @@ public class Client implements Runnable {
             }
         } catch (NumberFormatException e) {
             System.out.println("Порт должен быть целым числом");
-            System.exit(1);
+            emergencyExit();
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
-            System.exit(1);
+            emergencyExit();
         }
-        return null;
+
+        return new Pair<>("localhost", 1376);
+    }
+
+    private static void emergencyExit() {
+        System.out.println("Осуществляется аварийный выход из клиента");
+        System.exit(1);
     }
 
 

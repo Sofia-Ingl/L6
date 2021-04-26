@@ -16,10 +16,7 @@ import shared.serializable.ServerResponse;
 import shared.util.Serialization;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.nio.channels.IllegalBlockingModeException;
 
 public class Server implements Runnable {
@@ -42,7 +39,7 @@ public class Server implements Runnable {
                 new GoldenPalmsFilter(), new Info(), new AddIfMax(), new PrintAscending(), new RemoveAllByScreenwriter(),
                 new RemoveById(), new RemoveGreater(), new Update(), new Exit()};
 
-        Server server = new Server(pathAndPort.getSecond(), 10000, new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
+        Server server = new Server(pathAndPort.getSecond(), 30000, new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
         server.run();
     }
 
@@ -58,7 +55,7 @@ public class Server implements Runnable {
     @Override
     public void run() {
 
-        logger.info("Сервер запускается");
+        logger.info("Сервер запускается...");
         createSocketFactory();
         boolean noServerExitCode = true;
 
@@ -100,9 +97,12 @@ public class Server implements Runnable {
             serverSocket = new ServerSocket(port);
             logger.info("Фабрика сокетов создана");
             serverSocket.setSoTimeout(timeOut);
+        } catch (BindException e) {
+            logger.warn("Порт недоступен, следует указать другой");
+            emergencyExit();
         } catch (IOException | IllegalArgumentException e) {
             logger.warn("Ошибка при инициализации фабрики сокетов");
-            System.exit(1);
+            emergencyExit();
         }
     }
 
@@ -162,12 +162,21 @@ public class Server implements Runnable {
             }
         } catch (NumberFormatException e) {
             logger.error("Порт должен быть целым числом");
-            System.exit(1);
+            emergencyExit();
         } catch (IllegalArgumentException e) {
             logger.error(e.getMessage());
-            System.exit(1);
+            emergencyExit();
+        } catch (Exception e) {
+            logger.error("Непредвиденная ошибка при расшифровке аргументов командной строки");
+            emergencyExit();
         }
-        return null;
+
+        return new Pair<>("", 1376);
+    }
+
+    private static void emergencyExit() {
+        logger.error("Осуществляется аварийный выход из сервера");
+        System.exit(1);
     }
 
 
