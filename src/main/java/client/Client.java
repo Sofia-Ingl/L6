@@ -218,7 +218,7 @@ public class Client implements Runnable {
                     port = allowedHosts.get(hostToValidate);
                 } else {
                     if (!hostToValidate.equals("localhost")) {
-                        System.out.println("Введенный хост не поддерживается, вместо него будет использован localhost");
+                        throw new IllegalArgumentException("Введенный хост не поддерживается");
                     }
                     port = Integer.parseInt(args[1]);
                 }
