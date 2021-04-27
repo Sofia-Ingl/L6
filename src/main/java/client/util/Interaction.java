@@ -76,7 +76,6 @@ public class Interaction extends InteractiveConsoleUtils {
         } else {
 
             if (code == CommandExecutionCode.ERROR) {
-                // ошибка внутри скрипта, обнаруженная на сервере, выходим из всех скриптов removeAllFromStack
                 removeAllFromStack();
                 return null;
             }
@@ -85,8 +84,6 @@ public class Interaction extends InteractiveConsoleUtils {
                 if (!isScript) {
                     return null;
                 }
-                // снимаем скрипты со стека removeLastFromStack
-                // если снят последний скрипт и установлен isScript = false, возвращаем null
             }
 
             commandWithArg = (getScanner().nextLine() + " ").split(" ", 2);
@@ -98,7 +95,6 @@ public class Interaction extends InteractiveConsoleUtils {
             validation = commandIsValid(command, commandArg);
             if (!validation) {
                 printlnMessage("В скрипте обнаружена ошибка!");
-                // ошибка внутри скрипта, removeAllFromStack
                 removeAllFromStack();
                 return null;
             }
@@ -114,7 +110,6 @@ public class Interaction extends InteractiveConsoleUtils {
                 boolean success = putScriptOnStack(commandArg);
                 if (!success) {
                     removeAllFromStack();
-                    // ошибка в скрипте, выходим - removeAllFromStack
                     return null;
                 }
             }
@@ -138,13 +133,11 @@ public class Interaction extends InteractiveConsoleUtils {
                 return false;
             }
 
-            // ПРОВЕРКА РЕКУРСИИ
             if (files.contains(realPath)) {
-                printlnMessage("РЕКУРСИЯ В СКРИПТЕ!!!");
+                printlnMessage("Рекурсия в скрипте!!!");
                 return false;
             }
 
-            // НАСТРОЙКИ ЕСЛИ В СКРИПТЕ НЕТ РЕКУРСИИ И ПРОЧИХ ПОДСТАВ
             isScript = true;
             setScanner(new Scanner(realPath));
 
@@ -157,7 +150,7 @@ public class Interaction extends InteractiveConsoleUtils {
             return true;
 
         } catch (IOException | SecurityException | IllegalArgumentException e) {
-            printlnMessage("Ой ффсе! Кажется, кто-то подсунул паленый скрипт :c Признавайся, чертяка, это ты сделал?!");
+            printlnMessage("Ой все! Кажется, кто-то подсунул паленый скрипт :c Признавайся, это ты сделал?!");
         }
         return false;
     }

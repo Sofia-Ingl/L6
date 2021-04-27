@@ -80,13 +80,18 @@ public class Client implements Runnable {
 
                 selector.select(5000);
                 boolean reconnect;
+                int reconnects = 0;
                 while (selector.selectedKeys().isEmpty()) {
-                    interaction.printlnMessage("Сервер занят. Хотите продолжить ожидание? (yes)");
+                    if (reconnects == 2) {
+                        throw new ConnectException("Лимит ожидания превышен => соединение будет разорвано");
+                    }
+                    interaction.printlnMessage("Сервер пока ничего не прислал. Хотите продолжить ожидание? (yes)");
                     interaction.printMessage(">");
                     reconnect = interaction.readLine().trim().toLowerCase().equals("yes");
                     if (!reconnect) {
                         System.exit(0);
                     }
+                    reconnects++;
                     selector.select(5000);
                 }
 
@@ -117,7 +122,7 @@ public class Client implements Runnable {
                             b = getResponse();
                             response = (ServerResponse) Serialization.deserialize(b);
                             code = response.getCode();
-                            interaction.printlnMessage(response.toString());
+                            interaction.printlnMessage(response.getResponseToPrint());
                         }
 
                         if (selectionKey.isWritable()) {
@@ -143,12 +148,15 @@ public class Client implements Runnable {
                 interaction.printlnMessage("Клиент завершил работу приложения.");
                 System.exit(0);
 
+            } catch (ConnectException e) {
+                interaction.printlnMessage(e.getMessage());
             } catch (IOException | ClassNotFoundException e) {
                 interaction.printlnMessage("Соединение разорвано");
             }
         } catch (ConnectException e) {
             interaction.printlnMessage(e.getMessage());
-
+        } catch (Exception e) {
+            interaction.printlnMessage("Возникла непредвиденная ошибка");
         }
     }
 
@@ -178,7 +186,7 @@ public class Client implements Runnable {
 
         try {
             socketChannel.write(ByteBuffer.wrap(Serialization.serialize(clientRequest)));
-            interaction.printlnMessage("Запрос успешно отправлен.");
+            interaction.printlnMessage("Запрос успешно отправлен");
         } catch (IOException e) {
             interaction.printlnMessage("Возникла ошибка при отправке пользовательского запроса на сервер");
         }
@@ -191,7 +199,7 @@ public class Client implements Runnable {
             interaction.printlnMessage("Подождите, идет подключение...");
             socketChannel = SocketChannel.open(socketAddress);
             socketChannel.configureBlocking(false);
-            interaction.printlnMessage("Соединение с сервером в неблокирующем режиме установлено");
+            interaction.printlnMessage("Соединение в неблокирующем режиме установлено");
 
         } catch (IOException e) {
             throw new ConnectException("Ошибка соединения с сервером");
