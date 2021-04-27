@@ -1,7 +1,11 @@
 package shared.util;
 
-public enum CommandExecutionCode {
+import java.io.Serializable;
+
+public enum CommandExecutionCode implements Serializable {
     SUCCESS,
     ERROR,
-    EXIT
+    EXIT;
+
+    private static final long serialVersionUID = 1L;
 }

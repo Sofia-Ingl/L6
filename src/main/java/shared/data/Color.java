@@ -10,5 +10,7 @@ public enum Color implements Serializable {
     BLACK,
     BLUE,
     ORANGE,
-    WHITE
+    WHITE;
+
+    private static final long serialVersionUID = 1L;
 }

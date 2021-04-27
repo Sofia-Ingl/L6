@@ -11,6 +11,9 @@ import java.util.Objects;
  */
 public class Movie implements Comparable<Movie>, Serializable {
 
+
+    private static final long serialVersionUID = 1L;
+
     @Expose
     private int id; //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
     @Expose

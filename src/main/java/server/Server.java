@@ -14,13 +14,12 @@ import server.util.RequestProcessor;
 import shared.serializable.ClientRequest;
 import shared.serializable.ServerResponse;
 import shared.util.Serialization;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.IllegalBlockingModeException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
 
 public class Server implements Runnable {
 
@@ -32,6 +31,11 @@ public class Server implements Runnable {
     private final RequestProcessor requestProcessor;
 
     public static void main(String[] args) {
+
+        try {
+            Signal s = new Signal("TSTP");
+            Signal.handle(s, SignalHandler.SIG_IGN);
+        } catch (IllegalArgumentException ignored) {}
 
         Pair<String, Integer> pathAndPort = getPathAndPort(args);
         CollectionStorage collectionStorage = new CollectionStorage();

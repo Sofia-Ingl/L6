@@ -8,6 +8,9 @@ import java.io.Serializable;
  * Человек.
  */
 public class Person implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Expose
     private String name; //Поле не может быть null, Строка не может быть пустой
     @Expose

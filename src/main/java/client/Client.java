@@ -7,6 +7,8 @@ import shared.serializable.Pair;
 import shared.serializable.ServerResponse;
 import shared.util.CommandExecutionCode;
 import shared.util.Serialization;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -34,6 +36,11 @@ public class Client implements Runnable {
     private final Interaction interaction;
 
     public static void main(String[] args) {
+
+        try {
+            Signal s = new Signal("TSTP");
+            Signal.handle(s, SignalHandler.SIG_IGN);
+        } catch (IllegalArgumentException ignored) {}
 
         loadConfigs();
         Pair<String, Integer> hostAndPort = getHostAndPort(args);

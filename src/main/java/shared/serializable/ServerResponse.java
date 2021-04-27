@@ -7,6 +7,7 @@ import java.io.Serializable;
 public class ServerResponse implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
     private String responseToPrint;
     private CommandExecutionCode code;
 

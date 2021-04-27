@@ -10,6 +10,9 @@ public enum Country implements Serializable {
     UNITED_KINGDOM,
     USA,
     VATICAN,
-    JAPAN
+    JAPAN;
+
+
+    private static final long serialVersionUID = 1L;
 }
 

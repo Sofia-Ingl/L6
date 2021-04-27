@@ -8,6 +8,9 @@ import java.io.Serializable;
  * Координаты.
  */
 public class Coordinates implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Expose
     private float x; //Максимальное значение поля: 326
     @Expose

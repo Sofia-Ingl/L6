@@ -5,6 +5,7 @@ import java.io.Serializable;
 public class ClientRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
     String command;
     String commandArgument;
     Object createdObject;
