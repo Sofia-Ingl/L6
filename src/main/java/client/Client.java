@@ -98,11 +98,7 @@ public class Client implements Runnable {
                 selector.selectedKeys().clear();
                 setCommandsAvailable();
 
-                for (String s :
-                        interaction.getCommandsAvailable().keySet()) {
-                    interaction.printlnMessage(s + " интерактивна? " + interaction.getCommandsAvailable().get(s).getSecond().getFirst()
-                            + " принимает строчной аргумент? " + interaction.getCommandsAvailable().get(s).getSecond().getSecond());
-                }
+                interaction.printlnMessage(interaction.showCommandsAvailable());
 
                 socketChannel.register(selector, SelectionKey.OP_WRITE);
                 while (!clientExitCode) {
@@ -146,6 +142,7 @@ public class Client implements Runnable {
                 }
 
                 interaction.printlnMessage("Клиент завершил работу приложения.");
+                if (socketChannel != null) socketChannel.close();
                 System.exit(0);
 
             } catch (ConnectException e) {

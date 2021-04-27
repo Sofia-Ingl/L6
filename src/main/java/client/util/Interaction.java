@@ -206,4 +206,20 @@ public class Interaction extends InteractiveConsoleUtils {
     public String readLine() {
         return defaultScanner.nextLine();
     }
+
+    public String showCommandsAvailable() {
+
+        StringBuilder builder = new StringBuilder();
+        if (commandsAvailable != null && !commandsAvailable.isEmpty()) {
+            builder.append("\n").append("СПИСОК ДОСТУПНЫХ КОМАНД").append("\n");
+            for (String command : commandsAvailable.keySet()) {
+                builder.append(command).append(": ");
+                builder.append((commandsAvailable.get(command).getSecond().getFirst()) ? "" : "не ").append("интерактивна").append("; ");
+                builder.append((commandsAvailable.get(command).getSecond().getSecond()) ? "" : "не ").append("принимает строчной аргумент");
+                builder.append("\n");
+            }
+            return builder.toString();
+        }
+        return "Нет доступных команд";
+    }
 }
