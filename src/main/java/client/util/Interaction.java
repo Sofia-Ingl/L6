@@ -52,7 +52,9 @@ public class Interaction extends InteractiveConsoleUtils {
         if (!isScript) {
 
             while (!validation) {
+
                 printMessage(">");
+                systemInClosedProcessing();
                 commandWithArg = (defaultScanner.nextLine() + " ").split(" ", 2);
                 command = commandWithArg[0].trim();
                 commandArg = commandWithArg[1].trim();
@@ -204,6 +206,7 @@ public class Interaction extends InteractiveConsoleUtils {
     }
 
     public String readLine() {
+        systemInClosedProcessing();
         return defaultScanner.nextLine();
     }
 
@@ -221,5 +224,12 @@ public class Interaction extends InteractiveConsoleUtils {
             return builder.toString();
         }
         return "Нет доступных команд";
+    }
+
+    private void systemInClosedProcessing() {
+        if (defaultScanner == null || !defaultScanner.hasNextLine()) {
+            printlnMessage("\nПоток ввода завершен, приложение будет закрыто");
+            System.exit(0);
+        }
     }
 }

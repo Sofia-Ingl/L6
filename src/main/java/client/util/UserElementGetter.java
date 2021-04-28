@@ -41,6 +41,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         String line;
         do {
             printMessage(">>");
+            systemInClosedProcessing();
             line = getScanner().nextLine().trim();
             if (line.isEmpty()) {
                 printlnMessage("Строка не должна быть пустой!");
@@ -58,6 +59,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         do {
             exceptions = false;
             printMessage(">>");
+            systemInClosedProcessing();
             xAndY = getScanner().nextLine().trim().concat(" ").split(" ", 2);
             try {
                 coordinates = new Coordinates(Float.parseFloat(xAndY[0].trim()), Integer.parseInt(xAndY[1].trim()));
@@ -81,6 +83,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
             exceptions = false;
             printMessage(">>");
             try {
+                systemInClosedProcessing();
                 oscars = Integer.parseInt(getScanner().nextLine().trim());
                 if (oscars < 1) {
                     printlnMessage("Число должно быть строго положительным!");
@@ -106,6 +109,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
             exceptions = false;
             printMessage(">>");
             try {
+                systemInClosedProcessing();
                 palmsOrHeight = Long.parseLong(getScanner().nextLine().trim());
                 if (palmsOrHeight < 1) {
                     printlnMessage("Число должно быть строго положительным!");
@@ -122,6 +126,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
     private String taglineGetter() {
         printlnMessage("Введите строку тегов:");
         printMessage(">>");
+        systemInClosedProcessing();
         return getScanner().nextLine().trim();
     }
 
@@ -136,6 +141,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
             exceptions = false;
             printMessage(">>");
             try {
+                systemInClosedProcessing();
                 genre = MovieGenre.valueOf(getScanner().nextLine().trim().toUpperCase());
             } catch (IllegalArgumentException e) {
                 exceptions = true;
@@ -176,6 +182,8 @@ public class UserElementGetter extends InteractiveConsoleUtils {
             exceptions = false;
             printMessage(">>");
             try {
+
+                systemInClosedProcessing();
                 colorString = getScanner().nextLine().trim().toUpperCase();
                 if (!colorString.equals("")) {
                     color = Color.valueOf(colorString);
@@ -199,6 +207,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
             exceptions = false;
             printMessage(">>");
             try {
+                systemInClosedProcessing();
                 nationality = getScanner().nextLine().trim().toUpperCase();
                 if (!nationality.equals("")) {
                     country = Country.valueOf(nationality);
@@ -209,5 +218,12 @@ public class UserElementGetter extends InteractiveConsoleUtils {
             }
         } while (exceptions);
         return country;
+    }
+
+    private void systemInClosedProcessing() {
+        if (getScanner() == null || !getScanner().hasNextLine()) {
+            printlnMessage("\nПоток ввода завершен, приложение будет закрыто");
+            System.exit(0);
+        }
     }
 }

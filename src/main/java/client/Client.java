@@ -161,6 +161,7 @@ public class Client implements Runnable {
             interaction.printlnMessage(e.getMessage());
         } catch (Exception e) {
             interaction.printlnMessage("Возникла непредвиденная ошибка");
+            e.printStackTrace();
         }
     }
 
@@ -223,7 +224,7 @@ public class Client implements Runnable {
     private static Pair<String, Integer> getHostAndPort(String[] args) {
         try {
             if (args.length > 1) {
-                String hostToValidate = args[0];
+                String hostToValidate = args[0].trim();
                 String host = "localhost";
                 int port;
                 if (allowedHosts != null && allowedHosts.containsKey(hostToValidate)) {
