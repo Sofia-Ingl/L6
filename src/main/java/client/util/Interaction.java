@@ -5,6 +5,7 @@ import shared.serializable.ClientRequest;
 import shared.serializable.Pair;
 import shared.util.CommandExecutionCode;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,8 +65,12 @@ public class Interaction extends InteractiveConsoleUtils {
                 }
             }
 
-            if (commandsAvailable.get(command).getSecond().getFirst()) {
-                movie = userElementGetter.movieGetter();
+            try {
+                if (commandsAvailable.get(command).getSecond().getFirst()) {
+                    movie = userElementGetter.movieGetter();
+                }
+            } catch (EOFException e) {
+                System.exit(1);
             }
 
             if (command.equals("execute_script")) {
@@ -104,8 +109,14 @@ public class Interaction extends InteractiveConsoleUtils {
             printMessage(">");
             printlnMessage(command + " " + commandArg);
 
-            if (commandsAvailable.get(command).getSecond().getFirst()) {
-                movie = userElementGetter.movieGetter();
+            try {
+                if (commandsAvailable.get(command).getSecond().getFirst()) {
+                    movie = userElementGetter.movieGetter();
+                }
+            } catch (EOFException e) {
+                printlnMessage("Ошибка в скрипте");
+                removeAllFromStack();
+                return null;
             }
 
             if (command.equals("execute_script")) {
@@ -148,6 +159,7 @@ public class Interaction extends InteractiveConsoleUtils {
 
             userElementGetter.setScanner(getScanner());
             userElementGetter.setSuppressMessages(true);
+            userElementGetter.setScript(true);
 
             return true;
 
@@ -166,6 +178,7 @@ public class Interaction extends InteractiveConsoleUtils {
             setScanner(null);
             userElementGetter.setScanner(defaultScanner);
             userElementGetter.setSuppressMessages(false);
+            userElementGetter.setScript(false);
         } else {
             setScanner(scanners.peek());
             userElementGetter.setScanner(getScanner());
@@ -182,6 +195,7 @@ public class Interaction extends InteractiveConsoleUtils {
         setScanner(null);
         userElementGetter.setScanner(defaultScanner);
         userElementGetter.setSuppressMessages(false);
+        userElementGetter.setScript(false);
         files.clear();
     }
 

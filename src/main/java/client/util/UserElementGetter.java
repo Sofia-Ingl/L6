@@ -3,13 +3,18 @@ package client.util;
 
 import shared.data.*;
 
+import java.io.EOFException;
+
 
 /**
  * Класс, реализующий опрос пользователя и создание экземпляров класса Movie на основе полученной информации.
  */
 public class UserElementGetter extends InteractiveConsoleUtils {
 
-    public UserElementGetter() {}
+    private boolean isScript = false;
+
+    public UserElementGetter() {
+    }
 
 
     /**
@@ -19,7 +24,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
      *
      * @return экземпляр Movie, созданный на основе пользовательского ввода.
      */
-    public Movie movieGetter() {
+    public Movie movieGetter() throws EOFException {
         if (getScanner() != null) {
             printlnMessage("Пожалуйста, введите значения полей, характеризующих новый фильм.");
             return new Movie(nameGetter(false), coordinatesGetter(), oscarsCountGetter(), heightOrPalmsCountGetter(false),
@@ -31,7 +36,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
 
     }
 
-    private String nameGetter(boolean isScreenwriter) {
+    private String nameGetter(boolean isScreenwriter) throws EOFException {
 
         if (isScreenwriter) {
             printlnMessage("Введите имя:");
@@ -51,7 +56,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         return line.substring(0, 1).toUpperCase() + line.substring(1);
     }
 
-    private Coordinates coordinatesGetter() {
+    private Coordinates coordinatesGetter() throws EOFException {
         printlnMessage("Введите координаты x и y через пробел (первое число может быть дробным и не больше 326, второе целым и не больше 281):");
         String[] xAndY;
         boolean exceptions;
@@ -75,7 +80,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         return coordinates;
     }
 
-    private int oscarsCountGetter() {
+    private int oscarsCountGetter() throws EOFException {
         printlnMessage("Введите количество оскаров (их число целое, больше 0 и не больше максимального интеджера):");
         int oscars = 0;
         boolean exceptions;
@@ -97,7 +102,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         return oscars;
     }
 
-    private long heightOrPalmsCountGetter(boolean isScreenwriter) {
+    private long heightOrPalmsCountGetter(boolean isScreenwriter) throws EOFException {
         if (isScreenwriter) {
             printlnMessage("Введите рост:");
         } else {
@@ -123,14 +128,14 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         return palmsOrHeight;
     }
 
-    private String taglineGetter() {
+    private String taglineGetter() throws EOFException {
         printlnMessage("Введите строку тегов:");
         printMessage(">>");
         systemInClosedProcessing();
         return getScanner().nextLine().trim();
     }
 
-    private MovieGenre genreGetter() {
+    private MovieGenre genreGetter () throws EOFException {
 
         printlnMessage("Введите жанр фильма:");
         printlnMessage("(Доступные жанры: " + enumContentGetter(MovieGenre.class) + ")");
@@ -152,7 +157,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         return genre;
     }
 
-    private Person screenwriterGetter() {
+    private Person screenwriterGetter() throws EOFException {
         printlnMessage("Сейчас вам будет предложено описать сценариста фильма.");
         return new Person(nameGetter(true), heightOrPalmsCountGetter(true), eyeColorGetter(), nationalityGetter());
     }
@@ -172,7 +177,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         return description.toString();
     }
 
-    private Color eyeColorGetter() {
+    private Color eyeColorGetter() throws EOFException {
         printlnMessage("Введите цвет глаз:");
         printlnMessage("(Доступные цвета: " + enumContentGetter(Color.class) + ")");
         Color color = null;
@@ -197,7 +202,7 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         return color;
     }
 
-    private Country nationalityGetter() {
+    private Country nationalityGetter() throws EOFException {
         printlnMessage("Введите национальную принадлежность:");
         printlnMessage("(Доступные страны: " + enumContentGetter(Country.class) + ")");
         Country country = null;
@@ -220,10 +225,19 @@ public class UserElementGetter extends InteractiveConsoleUtils {
         return country;
     }
 
-    private void systemInClosedProcessing() {
-        if (getScanner() == null || !getScanner().hasNextLine()) {
-            printlnMessage("\nПоток ввода завершен, приложение будет закрыто");
-            System.exit(0);
+    private void systemInClosedProcessing() throws EOFException {
+        if (!isScript) {
+            if (getScanner() == null || !getScanner().hasNextLine()) {
+                printlnMessage("\nПоток ввода завершен, приложение будет закрыто");
+                System.exit(0);
+            }
+        } else {
+            throw new EOFException();
         }
+
+    }
+
+    public void setScript(boolean script) {
+        isScript = script;
     }
 }
