@@ -14,7 +14,7 @@ public class Info extends UserCommand {
     public Pair<Boolean, String> execute(String arg, Object obj) {
 
         String info;
-        synchronized (getCollectionStorage()) {
+        synchronized (getCollectionStorage().getCollection()) {
             CollectionStorage storage = getCollectionStorage();
             info = "\n" + "ИНФОРМАЦИЯ О КОЛЛЕКЦИИ" + "\n"
                     + "Тип коллекции: " + storage.getTypes()[0] + ", тип хранимых объектов: " + storage.getTypes()[1] + "\n"
