@@ -164,22 +164,28 @@ public class CollectionStorage {
      * @param movie фильм, который надо добавить в коллекцию.
      */
     public boolean addNewElement(Movie movie) {
-        int id;
-        if (collection.contains(movie)) {
-            return false;
+
+        synchronized (allIds) {
+            int id;
+            if (collection.contains(movie)) {
+                return false;
+            }
+            do {
+                id = idGenerator();
+            } while (allIds.contains(id));
+            movie.setId(id);
+            allIds.add(id);
         }
-        do {
-            id = idGenerator();
-        } while (allIds.contains(id));
-        movie.setId(id);
-        allIds.add(id);
         movie.setCreationDate(ZonedDateTime.now());
         collection.add(movie);
         updateTime = LocalDateTime.now();
         lastAccessTime = updateTime;
+
+
         if (maxMovie.compareTo(movie) < 0) {
             maxMovie = movie;
         }
+
         return true;
     }
 

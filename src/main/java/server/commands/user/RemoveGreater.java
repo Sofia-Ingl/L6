@@ -19,8 +19,11 @@ public class RemoveGreater extends UserCommand {
 
         String response;
         Movie movieToCompareWith = (Movie) obj;
-        //boolean isDeleted = getCollectionStorage().removeGreater(movieToCompareWith);
-        boolean isDeleted = getCollectionStorage().streamRemoveGreater(movieToCompareWith);
+        boolean isDeleted;
+
+        synchronized (getCollectionStorage().getCollection()) {
+            isDeleted = getCollectionStorage().streamRemoveGreater(movieToCompareWith);
+        }
         if (!isDeleted) {
             response = "В коллекции не было элементов, превосходящих заданный";
         } else {

@@ -24,7 +24,6 @@ public class ExecuteScript extends UserCommand {
             return new Pair<>(true, "Сервер готов к исполнению команд из скрипта " + arg);
 
         } catch (IllegalArgumentException e) {
-            //System.out.println(e.getMessage());
             errorString = e.getMessage();
         }
         return new Pair<>(false, errorString);

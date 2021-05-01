@@ -27,6 +27,8 @@ public class ClientConnection implements Runnable {
 
         try {
 
+            socket.getOutputStream().write(Serialization.serialize(server.getRequestProcessor().getCommandWrapper().mapOfCommandsToSend()));
+
             do {
 
                 byte[] b = new byte[65536];

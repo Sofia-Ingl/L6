@@ -21,12 +21,14 @@ public class Show extends UserCommand {
                 throw new IllegalArgumentException("Неверное число аргументов при использовании команды " + this.getName());
             }
 
-            if (getCollectionStorage().getCollection().isEmpty()) {
-                responseString = new StringBuilder("Коллекция пуста!");
-            } else {
-                responseString = new StringBuilder("В настоящий момент в коллекции находятся следующие элементы\n");
-                for (Movie movie : getCollectionStorage().getSortedCollection().getSecond()) {
-                    responseString.append(movie).append("\n");
+            synchronized (getCollectionStorage().getCollection()) {
+                if (getCollectionStorage().getCollection().isEmpty()) {
+                    responseString = new StringBuilder("Коллекция пуста!");
+                } else {
+                    responseString = new StringBuilder("В настоящий момент в коллекции находятся следующие элементы\n");
+                    for (Movie movie : getCollectionStorage().getSortedCollection().getSecond()) {
+                        responseString.append(movie).append("\n");
+                    }
                 }
             }
             return new Pair<>(true, responseString.toString());

@@ -6,6 +6,7 @@ import server.commands.abstracts.InnerServerCommand;
 import server.commands.abstracts.UserCommand;
 import server.commands.inner.Save;
 import server.commands.user.*;
+import server.util.ClientConnection;
 import server.util.CollectionStorage;
 import server.util.CommandWrapper;
 import shared.serializable.Pair;
@@ -20,6 +21,9 @@ import sun.misc.SignalHandler;
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.IllegalBlockingModeException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 public class Server implements Runnable {
 
@@ -29,6 +33,11 @@ public class Server implements Runnable {
     private final int timeOut;
     private ServerSocket serverSocket;
     private final RequestProcessor requestProcessor;
+
+//    private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+//    private Semaphore semaphore;
+
+
 
     public static void main(String[] args) {
 
@@ -56,6 +65,7 @@ public class Server implements Runnable {
         this.port = port;
         this.timeOut = timeOut;
         this.requestProcessor = requestProcessor;
+
     }
 
     @Override
@@ -67,19 +77,18 @@ public class Server implements Runnable {
 
         while (noServerExitCode) {
 
-            try (Socket socket = establishClientConnection()) {
+            try {
 
-                socket.getOutputStream().write(Serialization.serialize(requestProcessor.getCommandWrapper().mapOfCommandsToSend()));
+                Socket socket = establishClientConnection();
 
-                handleRequests(socket);
+                Thread clientConnection = new Thread(new ClientConnection(this, socket));
+                clientConnection.start();
 
-            }
-            catch (ConnectException e) {
+
+            } catch (ConnectException e) {
                 logger.info(e.getMessage());
                 requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 noServerExitCode = false;
-            } catch (IOException e) {
-                logger.warn("Ошибка соединения (клиент отключился, не дождавшись своей очереди)");
             }
         }
 
@@ -100,7 +109,6 @@ public class Server implements Runnable {
         try {
             serverSocket = new ServerSocket(port);
             logger.info("Фабрика сокетов создана");
-            serverSocket.setSoTimeout(timeOut);
         } catch (BindException e) {
             logger.warn("Порт недоступен, следует указать другой");
             emergencyExit();
@@ -116,13 +124,13 @@ public class Server implements Runnable {
             Socket clientSocket = serverSocket.accept();
             logger.info("Соединение с клиентом, находящимся по адресу {}, установлено", clientSocket.getRemoteSocketAddress().toString());
             return clientSocket;
-        } catch (SocketTimeoutException e) {
-            throw new ConnectException("Превышено время ожидания клиентского запроса");
         } catch (IOException | IllegalBlockingModeException | IllegalArgumentException e) {
-            throw new ConnectException("Ошибка соединения.");
+            throw new ConnectException("Ошибка соединения");
         }
     }
 
+
+/*
     private void handleRequests(Socket socket) {
 
         ClientRequest clientRequest;
@@ -152,7 +160,7 @@ public class Server implements Runnable {
         }
 
     }
-
+*/
 
     private static Pair<String, Integer> getPathAndPort(String[] args) {
         try {

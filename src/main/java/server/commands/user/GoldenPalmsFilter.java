@@ -18,15 +18,15 @@ public class GoldenPalmsFilter extends UserCommand {
             if (arg.isEmpty()) {
                 throw new IllegalArgumentException("Неверное число аргументов при использовании команды " + this.getName());
             }
-//            if (getCollectionStorage() == null) {
-//                throw new InappropriateProgramConfigurationException();
-//            }
             if (!arg.trim().matches("\\d+")) {
                 throw new IllegalArgumentException("Неправильный тип аргумента к команде!");
             } else {
                 long goldenPalms = Long.parseLong(arg.trim());
-                //String result = getCollectionStorage().returnGreaterThanGoldenPalms(goldenPalms);
-                String result = getCollectionStorage().streamReturnGreaterThanGoldenPalms(goldenPalms);
+
+                String result;
+                synchronized (getCollectionStorage().getCollection()) {
+                    result = getCollectionStorage().streamReturnGreaterThanGoldenPalms(goldenPalms);
+                }
                 return new Pair<>(true, result);
 
             }

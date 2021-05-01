@@ -19,7 +19,13 @@ public class Add extends UserCommand {
             if (!arg.isEmpty()) {
                 throw new IllegalArgumentException("Неверное число аргументов при использовании команды " + this.getName());
             }
-            if (getCollectionStorage().addNewElement((Movie) obj)) {
+            boolean result;
+
+            synchronized (getCollectionStorage().getCollection()) {
+                result = getCollectionStorage().addNewElement((Movie) obj);
+            }
+
+            if (result) {
                 return new Pair<>(true, "Элемент добавлен в коллекцию!");
             }
             return new Pair<>(true, "Такой элемент уже был в коллекции");

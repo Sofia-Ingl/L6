@@ -22,20 +22,22 @@ public class Update extends UserCommand {
                 throw new IllegalArgumentException("Неправильный тип аргумента к команде!");
             } else {
                 int id = Integer.parseInt(arg.trim());
-                //Movie m1 = getCollectionStorage().getById(id);
-                Movie m1 = getCollectionStorage().streamGetById(id);
-                if (m1 != null) {
-                    Movie m2 = (Movie) obj;
-                    m1.setName(m2.getName());
-                    m1.setCoordinates(m2.getCoordinates());
-                    m1.setGenre(m2.getGenre());
-                    m1.setOscarsCount(m2.getOscarsCount());
-                    m1.setGoldenPalmCount(m2.getGoldenPalmCount());
-                    m1.setTagline(m2.getTagline());
-                    m1.setScreenwriter(m2.getScreenwriter());
-                    response = "Элемент успешно обновлен";
-                } else {
-                    response = "Нет элемента с таким значением id!";
+                synchronized (getCollectionStorage().getCollection()) {
+
+                    Movie m1 = getCollectionStorage().streamGetById(id);
+                    if (m1 != null) {
+                        Movie m2 = (Movie) obj;
+                        m1.setName(m2.getName());
+                        m1.setCoordinates(m2.getCoordinates());
+                        m1.setGenre(m2.getGenre());
+                        m1.setOscarsCount(m2.getOscarsCount());
+                        m1.setGoldenPalmCount(m2.getGoldenPalmCount());
+                        m1.setTagline(m2.getTagline());
+                        m1.setScreenwriter(m2.getScreenwriter());
+                        response = "Элемент успешно обновлен";
+                    } else {
+                        response = "Нет элемента с таким значением id!";
+                    }
                 }
             }
 

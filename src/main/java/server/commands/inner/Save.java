@@ -13,7 +13,8 @@ public class Save extends InnerServerCommand {
 
     @Override
     public Pair<Boolean, String> execute(String arg, Object obj) {
-        boolean result = FileHelper.fileOutputLoader(getCollectionStorage().getCollection(), getCollectionStorage().getPath());
+        boolean result;
+        result = FileHelper.fileOutputLoader(getCollectionStorage().getCollection(), getCollectionStorage().getPath());
         Server.logger.info("Выполняется сохранение коллекции в файл");
         return new Pair<>(result, "");
     }

@@ -22,8 +22,10 @@ public class RemoveById extends UserCommand {
             }
 
             int id = Integer.parseInt(arg.trim());
-            //boolean wasInCollection = getCollectionStorage().deleteElementForId(id);
-            boolean wasInCollection = getCollectionStorage().streamDeleteElementForId(id);
+            boolean wasInCollection;
+            synchronized (getCollectionStorage().getCollection()) {
+                wasInCollection = getCollectionStorage().streamDeleteElementForId(id);
+            }
 
             if (!wasInCollection) {
                 response = "Нет элемента с таким значением id!";

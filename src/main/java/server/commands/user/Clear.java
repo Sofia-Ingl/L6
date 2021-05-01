@@ -11,7 +11,9 @@ public class Clear extends UserCommand {
 
     @Override
     public Pair<Boolean, String> execute(String arg, Object obj) {
-        getCollectionStorage().clearCollection();
+        synchronized (getCollectionStorage().getCollection()) {
+            getCollectionStorage().clearCollection();
+        }
         return new Pair<>(true, "Коллекция очищена");
     }
 }

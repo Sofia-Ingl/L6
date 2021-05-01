@@ -18,7 +18,10 @@ public class AddIfMax extends UserCommand {
         Movie newMovie = (Movie) obj;
 
         if (getCollectionStorage().getMaxMovie() == null || getCollectionStorage().getMaxMovie().compareTo(newMovie) < 0) {
-            boolean success = getCollectionStorage().addNewElement(newMovie);
+            boolean success;
+            synchronized (getCollectionStorage().getCollection()) {
+                success = getCollectionStorage().addNewElement(newMovie);
+            }
             if (!success) {
                 response = "Произошла коллизия, аналогичный элемент содержится в коллекции, поэтому заданный элемент не может быть добавлен";
             } else {

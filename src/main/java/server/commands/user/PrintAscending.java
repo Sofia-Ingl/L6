@@ -19,10 +19,12 @@ public class PrintAscending extends UserCommand {
     public Pair<Boolean, String> execute(String arg, Object obj) {
 
         StringBuilder builder = new StringBuilder();
-        Pair<String, ArrayList<Movie>> collection = getCollectionStorage().getSortedCollection();
-        builder.append(collection.getFirst()).append("\n");
-        for (Movie movie: collection.getSecond()) {
-            builder.append(movie).append("\n");
+        synchronized (getCollectionStorage().getCollection()) {
+            Pair<String, ArrayList<Movie>> collection = getCollectionStorage().getSortedCollection();
+            builder.append(collection.getFirst()).append("\n");
+            for (Movie movie : collection.getSecond()) {
+                builder.append(movie).append("\n");
+            }
         }
 
         return new Pair<>(true, builder.toString());

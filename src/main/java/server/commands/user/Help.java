@@ -22,9 +22,15 @@ public class Help extends UserCommand {
                 throw new IllegalArgumentException("Неверное число аргументов при использовании команды " + this.getName());
             }
             if (commandInfo == null) {
+
                 StringBuilder help = new StringBuilder("\n" + "ИНФОРМАЦИЯ О ДОСТУПНЫХ КОМАНДАХ" + "\n");
-                for (UserCommand userCommand : getCommandWrapper().getAllCommandsAvailable().values()) {
-                    help.append(userCommand.getName()).append(" ~> ").append(userCommand.getUtility()).append("\n");
+
+                synchronized (getCommandWrapper().getAllCommandsAvailable()) {
+
+                    for (UserCommand userCommand : getCommandWrapper().getAllCommandsAvailable().values()) {
+                        help.append(userCommand.getName()).append(" ~> ").append(userCommand.getUtility()).append("\n");
+                    }
+
                 }
                 commandInfo = help.toString();
             }
