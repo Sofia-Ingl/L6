@@ -44,7 +44,6 @@ public class FileHelper {
         } catch (IOException | SecurityException e) {
             Server.logger.error("Файл не найден или не хватает прав доступа");
             return null;
-            //System.exit(1);
         }
         try (FileInputStream inputStream = new FileInputStream(file);
              BufferedInputStream bufferedIS = new BufferedInputStream(inputStream);

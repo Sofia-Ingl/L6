@@ -25,7 +25,7 @@ public class Server implements Runnable {
 
     public final static Logger logger = LoggerFactory.getLogger(Server.class);
 
-    private int port = -1;
+    private int port;
     private final int timeOut;
     private ServerSocket serverSocket;
     private final RequestProcessor requestProcessor;
@@ -46,14 +46,14 @@ public class Server implements Runnable {
                 new RemoveById(), new RemoveGreater(), new Update(), new Exit()};
 
         Server server = new Server(pathAndPort.getSecond(), 30000, new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
+        addShutdownHook(server);
+
         server.run();
     }
 
 
     Server(int port, int timeOut, RequestProcessor requestProcessor) {
-        if (port > 1024) {
-            this.port = port;
-        }
+        this.port = port;
         this.timeOut = timeOut;
         this.requestProcessor = requestProcessor;
     }
@@ -96,9 +96,7 @@ public class Server implements Runnable {
     }
 
     private void createSocketFactory() {
-        if (port == -1) {
-            port = 1376;
-        }
+
         try {
             serverSocket = new ServerSocket(port);
             logger.info("Фабрика сокетов создана");
@@ -161,6 +159,9 @@ public class Server implements Runnable {
             if (args.length > 1) {
                 String path = args[0];
                 int port = Integer.parseInt(args[1]);
+                if (port <= 1024) {
+                    throw new IllegalArgumentException("Указан недопустимый порт");
+                }
                 return new Pair<>(path, port);
 
             } else {
@@ -185,5 +186,12 @@ public class Server implements Runnable {
         System.exit(1);
     }
 
+    private static void addShutdownHook(Server server) {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> server.getRequestProcessor().getCommandWrapper().getAllInnerCommands().get("save").execute("", null)));
+    }
+
+    public RequestProcessor getRequestProcessor() {
+        return requestProcessor;
+    }
 
 }
