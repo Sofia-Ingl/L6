@@ -6,36 +6,22 @@ import server.commands.abstracts.InnerServerCommand;
 import server.commands.abstracts.UserCommand;
 import server.commands.inner.Save;
 import server.commands.user.*;
-import server.util.ClientConnection;
-import server.util.CollectionStorage;
-import server.util.CommandWrapper;
+import server.util.*;
 import shared.serializable.Pair;
-import shared.util.CommandExecutionCode;
-import server.util.RequestProcessor;
-import shared.serializable.ClientRequest;
-import shared.serializable.ServerResponse;
-import shared.util.Serialization;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 import java.io.IOException;
 import java.net.*;
 import java.nio.channels.IllegalBlockingModeException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 
 public class Server implements Runnable {
 
     public final static Logger logger = LoggerFactory.getLogger(Server.class);
 
     private int port;
-    private final int timeOut;
     private ServerSocket serverSocket;
     private final RequestProcessor requestProcessor;
-
-//    private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
-//    private Semaphore semaphore;
 
 
 
@@ -54,16 +40,15 @@ public class Server implements Runnable {
                 new GoldenPalmsFilter(), new Info(), new AddIfMax(), new PrintAscending(), new RemoveAllByScreenwriter(),
                 new RemoveById(), new RemoveGreater(), new Update(), new Exit()};
 
-        Server server = new Server(pathAndPort.getSecond(), 30000, new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
+        Server server = new Server(pathAndPort.getSecond(), new RequestProcessor(new CommandWrapper(collectionStorage, userCommands, innerServerCommands)));
         addShutdownHook(server);
 
         server.run();
     }
 
 
-    Server(int port, int timeOut, RequestProcessor requestProcessor) {
+    Server(int port, RequestProcessor requestProcessor) {
         this.port = port;
-        this.timeOut = timeOut;
         this.requestProcessor = requestProcessor;
 
     }
@@ -74,6 +59,9 @@ public class Server implements Runnable {
         logger.info("Сервер запускается...");
         createSocketFactory();
         boolean noServerExitCode = true;
+
+        Thread exitManager = new Thread(new ExitManager());
+        exitManager.start();
 
         while (noServerExitCode) {
 
@@ -89,6 +77,8 @@ public class Server implements Runnable {
                 logger.info(e.getMessage());
                 requestProcessor.getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
                 noServerExitCode = false;
+            } catch (IllegalThreadStateException e) {
+                logger.info("Ошибка при запуске потока для обслуживания клиентского соединения");
             }
         }
 
@@ -195,7 +185,12 @@ public class Server implements Runnable {
     }
 
     private static void addShutdownHook(Server server) {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> server.getRequestProcessor().getCommandWrapper().getAllInnerCommands().get("save").execute("", null)));
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(() -> {
+                    logger.info("Выполняются действия после сигнала о прекращении работы сервера");
+                    server.getRequestProcessor().getCommandWrapper().getAllInnerCommands().get("save").execute("", null);
+                }
+        ));
     }
 
     public RequestProcessor getRequestProcessor() {

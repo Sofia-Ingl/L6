@@ -9,7 +9,7 @@ import shared.util.CommandExecutionCode;
 
 public class RequestProcessor {
 
-    CommandWrapper commandWrapper;
+    private CommandWrapper commandWrapper;
 
     public RequestProcessor(CommandWrapper commandWrapper) {
         this.commandWrapper = commandWrapper;
